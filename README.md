@@ -27,9 +27,10 @@ images are fetched straight from the CRM by the browser, via a `NEXT_PUBLIC_CRM_
 
 **The CRM decides what's public, not this app.** `packages/server/src/api/routes/public.ts` in the
 CRM repo hand-picks an explicit column whitelist per query — this app has no way to request a field
-that isn't already deliberately exposed. Visibility today is status-based (`New Launch` /
-`Under Construction` / `Nearing Possession` / `Ready To Move` for projects, `Available` for units) —
-no admin toggle yet.
+that isn't already deliberately exposed. A record is visible when its status is public-appropriate
+(`New Launch` / `Under Construction` / `Nearing Possession` / `Ready To Move` for projects,
+`Available` for units) **and** its `publish_to_web` field (default on) isn't explicitly turned off —
+an admin can hide any one record from the CRM without changing its status.
 
 **Enquiries become real CRM Leads.** `app/api/enquiry/route.ts` forwards submissions server-side to
 the CRM's existing `POST /api/webhooks/forms/website-enquiry` endpoint — the same lead-capture,
@@ -41,19 +42,25 @@ maintain.
 ```
 src/
   app/
-    page.tsx                 Home — hero search, featured projects, city explorer, process, FAQ
+    page.tsx                 Home — hero search, featured projects, recently viewed, city explorer, process, FAQ
     projects/                Search/filter grid + [id] detail (gallery, units table, similar projects)
+      [id]/opengraph-image.tsx  branded social-share card, generated per project from live data
     properties/               Unit-level search + [id] detail (price breakup, EMI calculator)
+      [id]/opengraph-image.tsx
+    cities/                   /cities index + /cities/[city] SEO landing pages (real stats, not filler copy)
     compare/                  CarWale-style spec-by-spec comparison, up to 4 items, shareable URL
     api/
       enquiry/route.ts        Server-side proxy → CRM webform endpoint
       compare/route.ts        Server-side proxy → CRM project/property lookups for the client-driven compare page
-    sitemap.ts, robots.ts
-  components/                 Cards, filters, compare table/tray, EMI calculator, enquiry form
+    sitemap.ts, robots.ts, opengraph-image.tsx (site default), error.tsx, not-found.tsx
+  components/                 Cards, filters, compare table/tray, EMI calculator, enquiry form,
+                               JsonLd, ThemeToggle, RecentlyViewedRail, ViewTracker
   lib/
     crm-client.ts             server-only typed fetch wrapper around CRM_API_URL
     media.ts                  client-safe image URL helper (NEXT_PUBLIC_CRM_MEDIA_URL)
-    store.ts                  zustand — compare/shortlist, persisted to localStorage, no login needed
+    store.ts                  zustand — compare/shortlist/recentlyViewed, persisted to localStorage
+    jsonld.ts                 schema.org RealEstateListing builders for project/property pages
+    amenityIcons.tsx          maps the CRM's 30 canonical amenities to lucide icons
     types.ts                  mirrors the CRM public API's response shape
 ```
 
@@ -76,6 +83,5 @@ npm run lint      # eslint
 
 ## What's not here yet
 
-City/locality SEO landing pages, an admin-facing "show on website" toggle per record (visibility is
-status-based for now), map-based search, and deployment — this currently only runs against a local
-CRM instance.
+Locality-level (as opposed to city-level) SEO pages, map-based search, and deployment — this
+currently only runs against a local CRM instance.
