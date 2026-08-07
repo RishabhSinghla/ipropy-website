@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+:root {
+  /* Warm, editorial-luxury palette — paper background, ink text, bronze accent. */
+  --paper: #faf7f2;
+  --paper-dim: #f2ede4;
+  --ink: #191510;
+  --ink-soft: #524a3f;
+  --ink-faint: #948a7a;
+  --line: #e6ddcd;
+  --accent: #a9702f;
+  --accent-soft: #f1e2ce;
+  --accent-ink: #5c3d19;
+  --success: #3f6b4a;
+  --danger: #a4402e;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+}
+
+.dark {
+  --paper: #14120f;
+  --paper-dim: #1c1913;
+  --ink: #f3ede1;
+  --ink-soft: #c9bfab;
+  --ink-faint: #8a8071;
+  --line: #322c22;
+  --accent: #d99b4e;
+  --accent-soft: #3a2c17;
+  --accent-ink: #f1cf9b;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-dim: var(--paper-dim);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+
+  --animate-fade-up: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-fade-in: fade-in 0.5s ease-out both;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.font-display {
+  font-family: var(--font-display), ui-serif, Georgia, serif;
+}
+
+/* Thin, refined scrollbars for the compare table's horizontal scroll. */
+.scrollbar-thin::-webkit-scrollbar { height: 6px; width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
