@@ -30,8 +30,42 @@ async function get<T>(path: string, params?: Record<string, string | number | un
 
 export class NotFoundError extends Error {}
 
+/**
+ * Same as `get`, but a CRM that is unreachable or erroring yields `fallback`
+ * instead of throwing.
+ *
+ * This exists because of how these pages render. The listing pages are Server
+ * Components using `revalidate: 60`, so Next prerenders them during
+ * `next build` — which means the CRM has to be answering at *build* time, not
+ * just at request time. It frequently is not: the CRM is on a free tier that
+ * sleeps after inactivity and takes ~50s to wake, and a deploy of the website
+ * is exactly when nobody has been using the CRM. Letting `get` throw there
+ * fails the whole Vercel build over a sleeping backend.
+ *
+ * Degrading to an empty list keeps the build (and the site) up, and ISR
+ * repairs it within `REVALIDATE_SECONDS` of the first real visit. Detail
+ * pages deliberately do NOT use this: a unit page with no unit on it is
+ * meaningless, so those still throw and hit notFound()/the error boundary.
+ */
+async function safeGet<T>(
+  path: string,
+  fallback: T,
+  params?: Record<string, string | number | undefined>,
+): Promise<T> {
+  try {
+    return await get<T>(path, params);
+  } catch (error) {
+    console.error(`[crm-client] ${path} unavailable, serving empty result`, error);
+    return fallback;
+  }
+}
+
 export function listProjects(params: ProjectSearchParams = {}): Promise<{ items: Project[]; total: number }> {
-  return get<{ items: Project[]; total: number }>("/projects", params as Record<string, string | number | undefined>);
+  return safeGet<{ items: Project[]; total: number }>(
+    "/projects",
+    { items: [], total: 0 },
+    params as Record<string, string | number | undefined>,
+  );
 }
 
 export function getProject(id: string): Promise<ProjectDetail> {
@@ -39,7 +73,11 @@ export function getProject(id: string): Promise<ProjectDetail> {
 }
 
 export function listProperties(params: PropertySearchParams = {}): Promise<{ items: Property[]; total: number }> {
-  return get<{ items: Property[]; total: number }>("/properties", params as Record<string, string | number | undefined>);
+  return safeGet<{ items: Property[]; total: number }>(
+    "/properties",
+    { items: [], total: 0 },
+    params as Record<string, string | number | undefined>,
+  );
 }
 
 export function getProperty(id: string): Promise<Property> {
@@ -47,9 +85,14 @@ export function getProperty(id: string): Promise<Property> {
 }
 
 export function getFilters(): Promise<PublicFilters> {
-  return get<PublicFilters>("/filters");
+  // Every key must be present and an array: consumers map over these directly
+  // (SearchBar does `filters.city.map(...)`), so a missing key would swap one
+  // crash for another.
+  return safeGet<PublicFilters>("/filters", {
+    city: [], locality: [], configuration: [], amenities: [],
+  });
 }
 
 export function getCities(): Promise<{ items: CitySummary[] }> {
-  return get<{ items: CitySummary[] }>("/cities");
+  return safeGet<{ items: CitySummary[] }>("/cities", { items: [] });
 }

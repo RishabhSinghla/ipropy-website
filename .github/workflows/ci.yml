@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        # Listing pages are Server Components prerendered during `next build`,
+        # so the build normally wants a reachable CRM. CI deliberately points
+        # at a dead port to prove the opposite: lib/crm-client.ts's safeGet
+        # degrades those pages to an empty result instead of throwing, which is
+        # what stops a sleeping free-tier CRM from failing a real deploy. If
+        # someone reintroduces a bare `get` on a listing page, this step fails.
+        env:
+          CRM_API_URL: http://127.0.0.1:59999
+          NEXT_PUBLIC_CRM_MEDIA_URL: http://127.0.0.1:59999
+          NEXT_PUBLIC_SITE_URL: https://example.invalid
+        run: npm run build
