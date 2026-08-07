@@ -114,6 +114,14 @@ export interface PublicFilters {
   amenities: FilterOption[];
 }
 
+export interface CitySummary {
+  city: string;
+  project_count: number;
+  unit_count: number;
+  price_min: number | null;
+  price_max: number | null;
+}
+
 export type ProjectSort = "possession" | "price_asc" | "price_desc" | "newest";
 export type PropertySort = "price_asc" | "price_desc" | "area_desc" | "possession";
 

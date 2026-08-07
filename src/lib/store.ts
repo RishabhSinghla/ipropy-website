@@ -14,14 +14,17 @@ export interface CompareRef {
 }
 
 const MAX_COMPARE = 4;
+const MAX_RECENTLY_VIEWED = 12;
 
 interface SiteState {
   compare: CompareRef[];
   shortlist: CompareRef[];
+  recentlyViewed: CompareRef[];
   addToCompare: (ref: CompareRef) => void;
   removeFromCompare: (id: string) => void;
   clearCompare: () => void;
   toggleShortlist: (ref: CompareRef) => void;
+  trackView: (ref: CompareRef) => void;
   isComparing: (id: string) => boolean;
   isShortlisted: (id: string) => boolean;
 }
@@ -31,6 +34,7 @@ export const useSiteStore = create<SiteState>()(
     (set, get) => ({
       compare: [],
       shortlist: [],
+      recentlyViewed: [],
       addToCompare: (ref) =>
         set((s) => {
           if (s.compare.some((c) => c.id === ref.id)) return s;
@@ -49,6 +53,10 @@ export const useSiteStore = create<SiteState>()(
           const exists = s.shortlist.some((c) => c.id === ref.id);
           return { shortlist: exists ? s.shortlist.filter((c) => c.id !== ref.id) : [...s.shortlist, ref] };
         }),
+      trackView: (ref) =>
+        set((s) => ({
+          recentlyViewed: [ref, ...s.recentlyViewed.filter((r) => r.id !== ref.id)].slice(0, MAX_RECENTLY_VIEWED),
+        })),
       isComparing: (id) => get().compare.some((c) => c.id === id),
       isShortlisted: (id) => get().shortlist.some((c) => c.id === id),
     }),

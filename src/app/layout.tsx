@@ -4,6 +4,22 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CompareTray } from "@/components/CompareTray";
+import { JsonLd } from "@/components/JsonLd";
+
+// Runs before paint (blocking, in <head>) so the correct theme applies on
+// first frame — a client-side effect would flash light-then-dark. No access
+// to React state here by design; it only ever touches the class + storage.
+const THEME_INIT_SCRIPT = `
+(function () {
+  try {
+    var stored = localStorage.getItem('theme');
+    var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (dark) document.documentElement.classList.add('dark');
+  } catch (e) {}
+})();
+`;
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -35,8 +51,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-paper text-ink">
+    <html lang="en" className={`${fraunces.variable} ${inter.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
+      <body className="flex min-h-full flex-col bg-paper text-ink" suppressHydrationWarning>
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "RealEstateAgent",
+            name: "iPropy",
+            url: SITE_URL,
+            areaServed: "IN",
+            description: "Curated, title-verified property listings synced live from our sales desk.",
+          }}
+        />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

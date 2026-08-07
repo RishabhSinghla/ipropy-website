@@ -6,10 +6,12 @@ import { usePathname } from "next/navigation";
 import { Menu, X, GitCompareArrows } from "lucide-react";
 import { useSiteStore } from "@/lib/store";
 import { cn } from "@/lib/cn";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const NAV = [
   { href: "/projects", label: "Projects" },
   { href: "/properties", label: "Properties" },
+  { href: "/cities", label: "Cities" },
   { href: "/compare", label: "Compare" },
 ];
 
@@ -48,30 +50,34 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-1 md:flex">
+          <ThemeToggle />
           <Link
             href="/compare"
-            className="flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-paper-dim hover:text-ink"
             aria-label="Compare"
           >
             <GitCompareArrows size={16} />
           </Link>
           <Link
             href="#enquire"
-            className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-transform hover:scale-[1.03]"
+            className="ml-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-transform hover:scale-[1.03]"
           >
             Enquire
           </Link>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="md:hidden"
-          aria-label="Toggle menu"
-        >
-          {open ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-label="Toggle menu"
+            className="flex h-9 w-9 items-center justify-center"
+          >
+            {open ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
 
       {open && (

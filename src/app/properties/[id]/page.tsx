@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CheckCircle2, MapPin, BedDouble, Bath, Compass, Layers, ExternalLink } from "lucide-react";
+import { MapPin, BedDouble, Bath, Compass, Layers, ExternalLink } from "lucide-react";
 import { getProperty, listProperties, NotFoundError } from "@/lib/crm-client";
+import { amenityIcon } from "@/lib/amenityIcons";
 import { formatIndianPrice, formatArea } from "@/lib/format";
 import { Gallery } from "@/components/Gallery";
 import { PropertyCard } from "@/components/PropertyCard";
@@ -10,6 +11,9 @@ import { EnquiryForm } from "@/components/EnquiryForm";
 import { EmiCalculator } from "@/components/EmiCalculator";
 import { CompareButton } from "@/components/CompareButton";
 import { mediaUrl } from "@/lib/media";
+import { JsonLd } from "@/components/JsonLd";
+import { propertyJsonLd } from "@/lib/jsonld";
+import { ViewTracker } from "@/components/ViewTracker";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   try {
@@ -60,6 +64,8 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
+      <JsonLd data={propertyJsonLd(property)} />
+      <ViewTracker item={{ id: property.id, kind: "property", name: property.name, subtitle: property.project_name ?? undefined, image: images[0] ?? null }} />
       <nav className="mb-6 flex items-center gap-1.5 text-xs text-ink-faint">
         <Link href="/" className="hover:text-ink">Home</Link>
         <span>/</span>
@@ -143,12 +149,15 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
             <section className="mt-10">
               <h2 className="font-display text-xl text-ink">Amenities</h2>
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {property.amenities.map((a) => (
-                  <div key={a} className="flex items-center gap-2 text-sm text-ink-soft">
-                    <CheckCircle2 size={14} className="shrink-0 text-success" />
-                    {a}
-                  </div>
-                ))}
+                {property.amenities.map((a) => {
+                  const Icon = amenityIcon(a);
+                  return (
+                    <div key={a} className="flex items-center gap-2 text-sm text-ink-soft">
+                      <Icon size={15} className="shrink-0 text-accent" />
+                      {a}
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}

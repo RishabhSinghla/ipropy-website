@@ -1,6 +1,6 @@
 import "server-only";
 import type {
-  Project, ProjectDetail, ProjectSearchParams, Property, PropertySearchParams, PublicFilters,
+  CitySummary, Project, ProjectDetail, ProjectSearchParams, Property, PropertySearchParams, PublicFilters,
 } from "./types";
 
 // Server-only: the CRM's origin never reaches client JS. Every page/route
@@ -48,4 +48,8 @@ export function getProperty(id: string): Promise<Property> {
 
 export function getFilters(): Promise<PublicFilters> {
   return get<PublicFilters>("/filters");
+}
+
+export function getCities(): Promise<{ items: CitySummary[] }> {
+  return get<{ items: CitySummary[] }>("/cities");
 }

@@ -1,13 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ShieldCheck, FileCheck2, Sparkles, Users } from "lucide-react";
-import { listProjects, getFilters } from "@/lib/crm-client";
+import { listProjects, getFilters, getCities } from "@/lib/crm-client";
 import { mediaUrl } from "@/lib/media";
+import { slugify } from "@/lib/slug";
 import { SearchBar } from "@/components/SearchBar";
 import { ProjectCard } from "@/components/ProjectCard";
 import { StatCounter } from "@/components/StatCounter";
 import { FaqAccordion } from "@/components/FaqAccordion";
 import { EnquiryForm } from "@/components/EnquiryForm";
+import { RecentlyViewedRail } from "@/components/RecentlyViewedRail";
 
 const BADGES = [
   { icon: ShieldCheck, label: "Title-Verified Listings" },
@@ -32,12 +34,13 @@ const FAQS = [
 ];
 
 export default async function HomePage() {
-  const [filters, featured] = await Promise.all([
+  const [filters, featured, citySummaries] = await Promise.all([
     getFilters(),
     listProjects({ limit: 6 }),
+    getCities(),
   ]);
 
-  const cities = filters.city.slice(0, 10);
+  const cities = citySummaries.items.slice(0, 10);
   const totalAvailableUnits = featured.items.reduce((sum, p) => sum + p.available_units, 0);
   const heroImage = mediaUrl(featured.items[0]?.gallery[0]);
 
@@ -106,19 +109,26 @@ export default async function HomePage() {
         </section>
       )}
 
+      <RecentlyViewedRail />
+
       {/* Explore by city */}
       {cities.length > 0 && (
         <section className="border-y border-line bg-paper-dim py-16">
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
-            <h2 className="font-display text-2xl text-ink sm:text-3xl">Explore by City</h2>
+            <div className="flex items-end justify-between gap-4">
+              <h2 className="font-display text-2xl text-ink sm:text-3xl">Explore by City</h2>
+              <Link href="/cities" className="text-sm font-medium text-ink-soft hover:text-ink">
+                All cities →
+              </Link>
+            </div>
             <div className="mt-6 flex flex-wrap gap-3">
               {cities.map((c) => (
                 <Link
-                  key={c.value}
-                  href={`/projects?city=${encodeURIComponent(c.value)}`}
+                  key={c.city}
+                  href={`/cities/${slugify(c.city)}`}
                   className="rounded-full border border-line bg-paper px-5 py-2.5 text-sm text-ink-soft transition-colors hover:border-accent hover:text-ink"
                 >
-                  {c.label}
+                  {c.city} <span className="text-ink-faint">({c.project_count})</span>
                 </Link>
               ))}
             </div>
