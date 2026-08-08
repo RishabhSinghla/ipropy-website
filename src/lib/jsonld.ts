@@ -1,7 +1,6 @@
 import type { Project, Property } from "./types";
 import { mediaUrl } from "./media";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+import { SITE_URL } from "./site-url";
 
 export function projectJsonLd(project: Project) {
   const images = project.gallery.map((g) => mediaUrl(g)).filter(Boolean);

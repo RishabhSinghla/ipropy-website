@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CompareTray } from "@/components/CompareTray";
 import { JsonLd } from "@/components/JsonLd";
+import { SITE_URL } from "@/lib/site-url";
 
 // Runs before paint (blocking, in <head>) so the correct theme applies on
 // first frame — a client-side effect would flash light-then-dark. No access
@@ -19,8 +20,6 @@ const THEME_INIT_SCRIPT = `
 })();
 `;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
 const fraunces = Fraunces({
   variable: "--font-fraunces",
   subsets: ["latin"],
@@ -33,7 +32,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "iPropy — Curated, Title-Verified Properties",
     template: "%s | iPropy",
