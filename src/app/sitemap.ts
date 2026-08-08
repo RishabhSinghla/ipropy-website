@@ -1,16 +1,17 @@
 import type { MetadataRoute } from "next";
-import { listProjects, listProperties, getCities } from "@/lib/crm-client";
+import { listProjects, listProperties, getCities, listBlogPosts } from "@/lib/crm-client";
 import { slugify } from "@/lib/slug";
 import { SITE_URL } from "@/lib/site-url";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [projects, properties, cities] = await Promise.all([
+  const [projects, properties, cities, posts] = await Promise.all([
     listProjects({ limit: 48 }),
     listProperties({ limit: 48 }),
     getCities(),
+    listBlogPosts({ limit: 200 }),
   ]);
 
-  const staticRoutes: MetadataRoute.Sitemap = ["", "/projects", "/properties", "/cities", "/compare"].map((path) => ({
+  const staticRoutes: MetadataRoute.Sitemap = ["", "/projects", "/properties", "/cities", "/compare", "/blog"].map((path) => ({
     url: `${SITE_URL}${path}`,
     changeFrequency: "hourly",
     priority: path === "" ? 1 : 0.8,
@@ -34,5 +35,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticRoutes, ...cityRoutes, ...projectRoutes, ...propertyRoutes];
+  // Posts carry a real lastModified: unlike listings, an article's value to a
+  // crawler is tied to when it was actually written.
+  const blogRoutes: MetadataRoute.Sitemap = posts.items.map((p) => ({
+    url: `${SITE_URL}/blog/${p.slug}`,
+    lastModified: new Date(p.published_at),
+    changeFrequency: "monthly",
+    priority: 0.65,
+  }));
+
+  return [...staticRoutes, ...cityRoutes, ...projectRoutes, ...propertyRoutes, ...blogRoutes];
 }
