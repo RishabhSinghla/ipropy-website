@@ -1,6 +1,6 @@
 import "server-only";
 import type {
-  BlogPost, BlogPostSummary, CitySummary, Project, ProjectDetail, ProjectSearchParams,
+  CitySummary, Project, ProjectDetail, ProjectSearchParams,
   Property, PropertySearchParams, PublicFilters,
 } from "./types";
 
@@ -99,28 +99,3 @@ export function getCities(): Promise<{ items: CitySummary[] }> {
 }
 
 
-// --- Blog --------------------------------------------------------------------
-
-/**
- * Posts are written in the CRM and read here, so there is one system of record
- * and no second CMS. Listing calls use `safeGet` for the same reason the
- * property listings do: a sleeping CRM must not fail the whole Vercel build.
- */
-export function listBlogPosts(
-  params: { limit?: number; offset?: number; category?: string } = {},
-): Promise<{ items: BlogPostSummary[]; total: number }> {
-  return safeGet<{ items: BlogPostSummary[]; total: number }>(
-    "/blog",
-    { items: [], total: 0 },
-    params as Record<string, string | number | undefined>,
-  );
-}
-
-export function getBlogCategories(): Promise<{ items: { category: string; count: number }[] }> {
-  return safeGet<{ items: { category: string; count: number }[] }>("/blog/categories", { items: [] });
-}
-
-/** Throws NotFoundError for an unknown or unpublished slug, so the page 404s. */
-export function getBlogPost(slug: string): Promise<BlogPost> {
-  return get<BlogPost>(`/blog/${encodeURIComponent(slug)}`);
-}
