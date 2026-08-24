@@ -26,34 +26,32 @@ export function SearchBar({ filters }: { filters: PublicFilters }) {
   return (
     <form
       onSubmit={onSubmit}
-      className="flex w-full flex-col gap-2 rounded-2xl border border-line bg-paper/95 p-2 shadow-[0_20px_60px_-25px_rgba(25,21,16,0.35)] backdrop-blur-sm sm:flex-row sm:items-stretch sm:rounded-full"
+      className="flex w-full flex-col border border-rule-hard bg-chalk-2 sm:flex-row sm:items-stretch"
     >
       <select
         value={city}
         onChange={(e) => setCity(e.target.value)}
-        className="flex-1 rounded-xl bg-transparent px-4 py-3 text-sm text-ink outline-none sm:rounded-full"
+        className="font-data flex-1 border-b border-rule bg-transparent px-4 py-3.5 text-xs uppercase tracking-[0.08em] text-ink outline-none sm:border-b-0 sm:border-r"
       >
         <option value="">Any City</option>
         {filters.city.map((c) => (
           <option key={c.value} value={c.value}>{c.label}</option>
         ))}
       </select>
-      <div className="hidden w-px bg-line sm:block" />
       <select
         value={configuration}
         onChange={(e) => setConfiguration(e.target.value)}
-        className="flex-1 rounded-xl bg-transparent px-4 py-3 text-sm text-ink outline-none sm:rounded-full"
+        className="font-data flex-1 border-b border-rule bg-transparent px-4 py-3.5 text-xs uppercase tracking-[0.08em] text-ink outline-none sm:border-b-0 sm:border-r"
       >
         <option value="">Any Configuration</option>
         {filters.configuration.map((c) => (
           <option key={c.value} value={c.value}>{c.label}</option>
         ))}
       </select>
-      <div className="hidden w-px bg-line sm:block" />
       <select
         value={budget}
         onChange={(e) => setBudget(Number(e.target.value))}
-        className="flex-1 rounded-xl bg-transparent px-4 py-3 text-sm text-ink outline-none sm:rounded-full"
+        className="font-data flex-1 border-b border-rule bg-transparent px-4 py-3.5 text-xs uppercase tracking-[0.08em] text-ink outline-none sm:border-b-0 sm:border-r"
       >
         {BUDGETS.map((b, i) => (
           <option key={b.label} value={i}>{b.label}</option>
@@ -61,7 +59,7 @@ export function SearchBar({ filters }: { filters: PublicFilters }) {
       </select>
       <button
         type="submit"
-        className="flex items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3 text-sm font-medium text-paper transition-transform hover:scale-[1.02] sm:rounded-full"
+        className="font-data flex items-center justify-center gap-2 bg-ink px-7 py-3.5 text-xs uppercase tracking-[0.12em] text-chalk transition-colors hover:bg-open"
       >
         <Search size={15} />
         Search
