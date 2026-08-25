@@ -50,16 +50,16 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "iPropy — Curated, Title-Verified Properties",
+    default: "iPropy — Builder Floors in Faridabad & NCR",
     template: "%s | iPropy",
   },
   description:
-    "Search, compare and shortlist verified projects and units — synced live from our sales desk, not a stale listings dump.",
+    "Independent builder floors in Faridabad and nearby NCR, read live from our sales desk. See which floors are genuinely free right now, gaps and all.",
   openGraph: {
     siteName: "iPropy",
     type: "website",
-    title: "iPropy — Curated, Title-Verified Properties",
-    description: "Search, compare and shortlist verified projects and units — synced live from our sales desk.",
+    title: "iPropy — Builder Floors in Faridabad & NCR",
+    description: "Independent builder floors in Faridabad and nearby NCR, read live from our sales desk.",
   },
   twitter: { card: "summary_large_image" },
   // iOS ignores the web manifest, so installability there depends on these.
@@ -78,8 +78,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf7f2" },
-    { media: "(prefers-color-scheme: dark)", color: "#14120f" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f5f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1211" },
   ],
 };
 
@@ -96,7 +96,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             "@type": "RealEstateAgent",
             name: "iPropy",
             url: SITE_URL,
-            areaServed: "IN",
+            areaServed: "Faridabad, Delhi NCR, India",
             description: "Curated, title-verified property listings synced live from our sales desk.",
           }}
         />

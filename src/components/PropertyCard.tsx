@@ -31,7 +31,7 @@ export function PropertyCard({ property, priority = false }: { property: Propert
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full items-center justify-center font-display text-3xl text-ink-faint/40">
+          <div className="flex h-full items-center justify-center font-display text-3xl text-ink-2/40">
             {property.configuration ?? property.name.slice(0, 1)}
           </div>
         )}
@@ -49,11 +49,11 @@ export function PropertyCard({ property, priority = false }: { property: Propert
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div>
           <Link href={`/properties/${property.id}`}>
-            <h3 className="font-display text-lg text-ink transition-colors group-hover:text-accent">
+            <h3 className="font-display text-lg text-ink transition-colors group-hover:underline">
               {property.project_name ?? property.name}
             </h3>
           </Link>
-          <p className="mt-1 flex items-center gap-1 text-xs text-ink-faint">
+          <p className="mt-1 flex items-center gap-1 text-xs text-ink-2">
             <MapPin size={12} />
             {[property.locality, property.city].filter(Boolean).join(", ")}
           </p>
@@ -74,7 +74,7 @@ export function PropertyCard({ property, priority = false }: { property: Propert
         </div>
 
         <div className="mt-auto border-t border-line pt-3">
-          <div className="text-[11px] uppercase tracking-wide text-ink-faint">All-inclusive price</div>
+          <div className="text-[11px] uppercase tracking-wide text-ink-2">All-inclusive price</div>
           <div className="font-display text-lg text-ink">{formatIndianPrice(property.total_price ?? property.base_price)}</div>
         </div>
       </div>
@@ -87,7 +87,7 @@ export function PropertyCard({ property, priority = false }: { property: Propert
           }
           aria-label="Shortlist"
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-full bg-paper/90 backdrop-blur-sm transition-colors",
+            "flex h-11 w-11 items-center justify-center rounded-full bg-paper/90 backdrop-blur-sm transition-colors",
             shortlisted ? "text-danger" : "text-ink-soft hover:text-danger",
           )}
         >
@@ -100,7 +100,7 @@ export function PropertyCard({ property, priority = false }: { property: Propert
           }
           aria-label="Add to compare"
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-full bg-paper/90 backdrop-blur-sm transition-colors",
+            "flex h-11 w-11 items-center justify-center rounded-full bg-paper/90 backdrop-blur-sm transition-colors",
             comparing ? "text-accent" : "text-ink-soft hover:text-accent",
           )}
         >

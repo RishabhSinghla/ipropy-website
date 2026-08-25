@@ -12,6 +12,9 @@ export function FaqAccordion({ items }: { items: { q: string; a: string }[] }) {
       {items.map((item, i) => (
         <div key={item.q}>
           <button
+            aria-expanded={open === i}
+            aria-controls={`faq-panel-${i}`}
+            id={`faq-trigger-${i}`}
             type="button"
             onClick={() => setOpen(open === i ? -1 : i)}
             className="flex w-full items-center justify-between gap-4 py-5 text-left"
@@ -23,6 +26,11 @@ export function FaqAccordion({ items }: { items: { q: string; a: string }[] }) {
             />
           </button>
           <div
+            id={`faq-panel-${i}`}
+            role="region"
+            aria-labelledby={`faq-trigger-${i}`}
+            hidden={open !== i}
+            
             className={cn(
               "grid overflow-hidden transition-all duration-300",
               open === i ? "grid-rows-[1fr] pb-5 opacity-100" : "grid-rows-[0fr] opacity-0",

@@ -18,15 +18,25 @@
   --rule-hard: #b6bbb3;
   --ink: #0e1211;
   --ink-2: #545b56;
-  --ink-3: #868c85;
+  /* Solved for 4.5:1 on --chalk, the harder of the two light grounds. The old
+     #868c85 measured 3.14:1 and it carried the facts a buyer came for: carpet
+     area, facing, "4 floors free today". Three of the four things they ask
+     about were printed in the lowest-contrast colour on the page. */
+  --ink-3: #6c716b;
 
-  /* The three states a floor can be in. Nothing else uses these. */
-  --open: #1f8a5b;
+  /* The three states a floor can be in. Nothing else uses these.
+     Each solved for 4.5:1 on --chalk so a 10px status label still passes. */
+  --open: #1c7e53;
   --open-wash: #e4f1ea;
-  --held: #b87514;
+  --held: #9c6311;
   --held-wash: #f7eddc;
-  --taken: #a2a6a0;
+  --taken: #6e706c;
   --taken-wash: #ebece9;
+
+  /* Failure. Its own colour, because an error drawn in the availability green
+     tells the visitor the opposite of what happened. */
+  --alert: #9e3524;
+  --alert-wash: #f7e6e2;
 
   --background: var(--chalk);
   --foreground: var(--ink);
@@ -41,14 +51,16 @@
   --rule-hard: #454e4a;
   --ink: #eef0ec;
   --ink-2: #a8afa9;
-  --ink-3: #777e78;
+  --ink-3: #808781;  /* 4.64:1 on the raised card, was 4.10 */
 
   --open: #4cc189;
   --open-wash: #102b20;
   --held: #d9a04a;
   --held-wash: #2e2211;
-  --taken: #6b716c;
+  --taken: #818682;
   --taken-wash: #1c2220;
+  --alert: #e8836f;
+  --alert-wash: #3a1c16;
 
   --background: var(--chalk);
   --foreground: var(--ink);
@@ -70,20 +82,28 @@
   --color-held-wash: var(--held-wash);
   --color-taken: var(--taken);
   --color-taken-wash: var(--taken-wash);
+  --color-alert: var(--alert);
+  --color-alert-wash: var(--alert-wash);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  /* Kept as aliases so pages I have not touched still render sanely. */
+  /*
+    Aliases for pages still on the old names. `accent` deliberately resolves to
+    ink, NOT to the availability green: pointing it at `--open` quietly turned a
+    status into a brand colour and spent it on eyebrows, icons and link hovers
+    in 37 places, including a green warning triangle on the error page. A signal
+    used everywhere signals nothing.
+  */
   --color-paper: var(--chalk);
   --color-paper-dim: var(--chalk-2);
   --color-ink-soft: var(--ink-2);
   --color-ink-faint: var(--ink-3);
   --color-line: var(--rule);
-  --color-accent: var(--open);
-  --color-accent-soft: var(--open-wash);
-  --color-accent-ink: var(--open);
+  --color-accent: var(--ink);
+  --color-accent-soft: var(--chalk);
+  --color-accent-ink: var(--ink);
   --color-success: var(--open);
-  --color-danger: #a4402e;
+  --color-danger: var(--alert);
 
   --font-display: var(--font-bricolage);
   --font-sans: var(--font-newsreader);
@@ -112,13 +132,19 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* The small uppercase label used for section eyebrows and column heads. */
+/*
+  In @layer components so a utility beside it wins.
+  Unlayered, this rule beat Tailwind regardless of specificity: `label text-ink
+  text-[9px]` rendered neither the colour nor the size it asked for.
+*/
+@layer components {
 .label {
   font-family: var(--font-jetbrains), ui-monospace, monospace;
   font-size: 0.6875rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-3);
+}
 }
 
 ::selection { background: var(--open-wash); color: var(--open); }
@@ -182,13 +208,9 @@ textarea:focus-visible {
 .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 999px; }
 .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
 
-.prose-post { color: var(--ink-2); line-height: 1.75; }
-.prose-post > * + * { margin-top: 1.15rem; }
-.prose-post h2 { font-size: 1.5rem; line-height: 1.3; color: var(--ink); margin-top: 2.5rem; }
-.prose-post h3 { font-size: 1.2rem; line-height: 1.35; color: var(--ink); margin-top: 2rem; }
-.prose-post strong { color: var(--ink); font-weight: 600; }
-.prose-post ul { list-style: disc; padding-left: 1.4rem; }
-.prose-post li + li { margin-top: 0.4rem; }
-.prose-post a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
-.prose-post blockquote { border-left: 2px solid var(--rule); padding-left: 1rem; font-style: italic; }
-.prose-post code { background: var(--chalk-2); padding: 0.1rem 0.35rem; border-radius: 2px; font-size: 0.9em; }
+/*
+  The article styles that used to live here went with the blog. Ten rules for a
+  page that no longer exists, one of which the detector rightly flagged: a
+  left-rule blockquote is the stock treatment. Deleted rather than restyled,
+  because the honest fix for dead code is to remove it.
+*/

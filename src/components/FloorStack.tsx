@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { MessageCircle } from "lucide-react";
 import type { Property } from "@/lib/types";
 import { formatIndianPrice } from "@/lib/format";
+import { askAboutUnit, whatsappLink } from "@/lib/contact";
+import { toneOf, labelOf, TONE_TEXT, type Tone } from "@/lib/status";
 
 /**
  * A building, drawn as what it is: floors stacked on floors.
@@ -17,12 +20,9 @@ import { formatIndianPrice } from "@/lib/format";
 
 type FloorRow = { floor: number; unit: Property | null };
 
-function statusOf(unit: Property | null): "open" | "held" | "taken" {
-  if (!unit) return "taken";
-  const s = (unit.status ?? "").toLowerCase();
-  if (s === "available") return "open";
-  if (s === "held" || s === "temporarily held" || s === "blocked") return "held";
-  return "taken";
+/** A row with no unit is not "booked" — it was never on the market. */
+function statusOf(unit: Property | null): Tone | null {
+  return unit ? toneOf(unit.status) : null;
 }
 
 export function FloorStack({
@@ -43,6 +43,10 @@ export function FloorStack({
     return { floor, unit: units.find((u) => u.floor === floor) ?? null };
   });
 
+  // Count against the floors iPropy actually holds, not against the height of
+  // the building. Ashoka has one floor for sale and two that were never listed;
+  // "1 of 3 floors free" reads as two-thirds sold and is simply untrue.
+  const listed = rows.filter((r) => r.unit).length;
   const openCount = rows.filter((r) => statusOf(r.unit) === "open").length;
 
   return (
@@ -66,9 +70,7 @@ export function FloorStack({
                 <span className="font-data text-2xl font-medium leading-none text-ink">
                   {row.floor}
                 </span>
-                <span className="label mt-1.5 text-[9px] tracking-[0.12em]">
-                  {row.floor === 1 ? "GRND" : "FLOOR"}
-                </span>
+                <span className="label mt-1.5">FLOOR</span>
               </div>
 
               {unit ? (
@@ -94,7 +96,7 @@ export function FloorStack({
                     <span className="font-data block text-sm font-medium text-ink">
                       {formatIndianPrice(unit.total_price)}
                     </span>
-                    <StatusPip state={state} />
+                    {state && <StatusPip state={state} />}
                   </span>
                 </Link>
               ) : (
@@ -103,6 +105,25 @@ export function FloorStack({
                     Not on the market
                   </span>
                 </div>
+              )}
+
+              {unit && state === "open" && (
+                <a
+                  href={whatsappLink(
+                    askAboutUnit({
+                      unit: unit.name,
+                      configuration: unit.configuration,
+                      project,
+                      floor: row.floor,
+                    }),
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Ask about the ${unit.configuration ?? unit.name} on floor ${row.floor} on WhatsApp`}
+                  className="flex w-12 shrink-0 items-center justify-center border-l border-rule text-ink-2 transition-colors hover:bg-open-wash hover:text-open"
+                >
+                  <MessageCircle size={16} />
+                </a>
               )}
             </div>
           );
@@ -114,7 +135,7 @@ export function FloorStack({
         <span className="font-data text-xs text-ink-2">
           {openCount > 0 ? (
             <>
-              <b className="font-medium text-open">{openCount}</b> of {rows.length} floors free
+              <b className="font-medium text-open">{openCount}</b> of {listed} we hold {listed === 1 ? "is" : "are"} free
             </>
           ) : (
             "Fully booked"
@@ -129,16 +150,12 @@ export function FloorStack({
  * The only place saturated colour is allowed. It means one thing, so it can be
  * read without a legend.
  */
-function StatusPip({ state }: { state: "open" | "held" | "taken" }) {
-  const copy = { open: "Available", held: "Held", taken: "Booked" }[state];
-  const tone = {
-    open: "text-open",
-    held: "text-held",
-    taken: "text-taken",
-  }[state];
+function StatusPip({ state }: { state: Tone }) {
+  const copy = labelOf(state);
+  const tone = TONE_TEXT[state];
 
   return (
-    <span className={`font-data mt-1 flex items-center justify-end gap-1.5 text-[10px] uppercase tracking-[0.1em] ${tone}`}>
+    <span className={`font-data mt-1 flex items-center justify-end gap-1.5 text-[11px] uppercase tracking-[0.1em] ${tone}`}>
       <span
         aria-hidden
         className={`inline-block h-1.5 w-1.5 rounded-full bg-current ${state === "open" ? "breathe" : ""}`}

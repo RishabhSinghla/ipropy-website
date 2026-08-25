@@ -63,6 +63,10 @@ export default async function HomePage() {
   ]);
 
   const cities = citySummaries.items.slice(0, 10);
+  // Cities we actually hold stock in, not the CRM's 27-city global picklist.
+  // Offering a city with nothing behind it sends a buyer to an empty page,
+  // which reads as a fake catalogue — the exact portal behaviour we beat.
+  const liveCities = [...new Set(liveUnits.items.map((u) => u.city).filter(Boolean))] as string[];
   const buildings = byProject(liveUnits.items);
   const hero = buildings[0];
   const heroImage = mediaUrl(featured.items[0]?.gallery[0]);
@@ -84,7 +88,7 @@ export default async function HomePage() {
         )}
 
         <div className="mx-auto grid max-w-7xl gap-12 px-5 pb-20 pt-16 sm:px-8 lg:grid-cols-[1.05fr_minmax(0,26rem)] lg:items-center lg:gap-16 lg:pb-28 lg:pt-24">
-          <div>
+          <div className="contents lg:block">
             <p className="rise label flex items-center gap-2" style={{ "--i": 0 } as React.CSSProperties}>
               <span aria-hidden className="breathe inline-block h-1.5 w-1.5 rounded-full bg-open" />
               Live from our sales desk
@@ -112,13 +116,13 @@ export default async function HomePage() {
               entrance. We list what is genuinely free right now, gaps and all.
             </p>
 
-            <div className="rise mt-9 max-w-xl" style={{ "--i": 3 } as React.CSSProperties}>
-              <SearchBar filters={filters} />
+            <div className="rise order-3 mt-9 max-w-xl lg:order-none" style={{ "--i": 3 } as React.CSSProperties}>
+              <SearchBar filters={filters} cities={liveCities} />
             </div>
 
             {openNow.length > 0 && (
               <p
-                className="rise font-data mt-6 text-xs text-ink-3"
+                className="rise order-4 font-data mt-6 text-xs text-ink-2 lg:order-none"
                 style={{ "--i": 4 } as React.CSSProperties}
               >
                 {openNow.length} floor{openNow.length === 1 ? "" : "s"} free today
@@ -128,7 +132,7 @@ export default async function HomePage() {
           </div>
 
           {hero ? (
-            <div className="lg:justify-self-end lg:pt-4">
+            <div className="order-2 lg:order-none lg:justify-self-end lg:pt-4">
               <FloorStack project={hero.project} units={hero.units} />
             </div>
           ) : (
@@ -160,7 +164,7 @@ export default async function HomePage() {
                 Floor by floor, as it stands
               </h2>
             </div>
-            <Link href="/properties" className="font-data hidden shrink-0 text-xs uppercase tracking-[0.12em] text-ink-2 hover:text-ink sm:block">
+            <Link href="/properties" className="font-data inline-flex min-h-11 shrink-0 items-center text-xs uppercase tracking-[0.12em] text-ink-2 hover:text-ink">
               All floors →
             </Link>
           </div>
@@ -173,28 +177,13 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ── Projects ───────────────────────────────────────────────────── */}
-      {featured.items.length > 0 && (
-        <section className="border-t border-rule bg-chalk-2 py-20">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8">
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <span className="label">Projects</span>
-                <h2 className="font-display mt-2 text-3xl text-ink sm:text-4xl">Where these floors are</h2>
-              </div>
-              <Link href="/projects" className="font-data hidden shrink-0 text-xs uppercase tracking-[0.12em] text-ink-2 hover:text-ink sm:block">
-                All projects →
-              </Link>
-            </div>
-
-            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {featured.items.map((p, i) => (
-                <ProjectCard key={p.id} project={p} priority={i < 3} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      {/*
+        The projects grid used to sit here. It showed the same buildings the
+        stacks above had already drawn, in a second visual language, and said
+        "3 units available" for a building whose own caption said "3 of 4 floors
+        free". One fact, two vocabularies, 400px apart. The stack is the truth,
+        so the duplicate went.
+      */}
 
       <RecentlyViewedRail />
 
@@ -285,7 +274,7 @@ export default async function HomePage() {
             If it is not on this page today, it is probably coming. We will call you when it does.
           </p>
           <div className="mt-8">
-            <EnquiryForm />
+            <EnquiryForm title="" subtitle="" />
           </div>
         </div>
       </section>

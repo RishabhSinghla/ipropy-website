@@ -21,8 +21,8 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "portrait",
     // Matches --paper / --accent in globals.css so the splash screen doesn't
     // flash a colour the site never uses.
-    background_color: "#faf7f2",
-    theme_color: "#191510",
+    background_color: "#f4f5f2",
+    theme_color: "#0e1211",
     categories: ["business", "lifestyle", "shopping"],
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

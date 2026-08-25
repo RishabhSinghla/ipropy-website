@@ -17,7 +17,7 @@ export function ProjectCard({ project, priority = false }: { project: Project; p
   const addToCompare = useSiteStore((s) => s.addToCompare);
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-paper transition-shadow hover:shadow-[0_20px_50px_-20px_rgba(25,21,16,0.25)]">
+    <div className="group relative flex flex-col overflow-hidden rounded-[2px] border border-rule-hard bg-chalk-2 transition-colors hover:border-ink">
       <Link href={`/projects/${project.id}`} className="relative block aspect-[4/3] overflow-hidden bg-paper-dim">
         {image ? (
           <Image
@@ -33,13 +33,16 @@ export function ProjectCard({ project, priority = false }: { project: Project; p
             {project.name.slice(0, 1)}
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink/60 to-transparent" />
-        <span className="absolute left-3 top-3 rounded-full bg-paper/90 px-3 py-1 text-[11px] font-medium text-ink backdrop-blur-sm">
+        <div aria-hidden className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink/70 to-transparent" />
+        <span className="font-data absolute left-3 top-3 rounded-[2px] bg-chalk px-2.5 py-1 text-[11px] text-ink">
           {project.status}
         </span>
         {project.available_units > 0 && (
-          <span className="absolute bottom-3 left-3 text-xs font-medium text-paper">
-            {project.available_units} units available
+          /* Its own solid ground, not a gradient. A gradient's contrast depends
+             on the photograph underneath it, and over a missing image this text
+             measured 1.09:1 — invisible. */
+          <span className="font-data absolute bottom-3 left-3 rounded-[2px] bg-ink px-2.5 py-1 text-[11px] text-chalk">
+            {project.available_units} {project.available_units === 1 ? "floor" : "floors"} free
           </span>
         )}
       </Link>
@@ -47,7 +50,7 @@ export function ProjectCard({ project, priority = false }: { project: Project; p
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div>
           <Link href={`/projects/${project.id}`}>
-            <h3 className="font-display text-lg text-ink transition-colors group-hover:text-accent">{project.name}</h3>
+            <h3 className="font-display text-lg text-ink transition-colors group-hover:underline">{project.name}</h3>
           </Link>
           <p className="mt-1 flex items-center gap-1 text-xs text-ink-faint">
             <MapPin size={12} />
@@ -85,7 +88,7 @@ export function ProjectCard({ project, priority = false }: { project: Project; p
           onClick={() => toggleShortlist({ id: project.id, kind: "project", name: project.name, subtitle: project.locality ?? undefined, image })}
           aria-label="Shortlist"
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-full bg-paper/90 backdrop-blur-sm transition-colors",
+            "flex h-11 w-11 items-center justify-center rounded-full bg-paper/90 backdrop-blur-sm transition-colors",
             shortlisted ? "text-danger" : "text-ink-soft hover:text-danger",
           )}
         >
@@ -96,7 +99,7 @@ export function ProjectCard({ project, priority = false }: { project: Project; p
           onClick={() => addToCompare({ id: project.id, kind: "project", name: project.name, subtitle: project.locality ?? undefined, image })}
           aria-label="Add to compare"
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-full bg-paper/90 backdrop-blur-sm transition-colors",
+            "flex h-11 w-11 items-center justify-center rounded-full bg-paper/90 backdrop-blur-sm transition-colors",
             comparing ? "text-accent" : "text-ink-soft hover:text-accent",
           )}
         >
