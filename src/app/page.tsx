@@ -5,7 +5,6 @@ import { mediaUrl } from "@/lib/media";
 import { slugify } from "@/lib/slug";
 import { formatIndianPrice } from "@/lib/format";
 import { SearchBar } from "@/components/SearchBar";
-import { ProjectCard } from "@/components/ProjectCard";
 import { FaqAccordion } from "@/components/FaqAccordion";
 import { EnquiryForm } from "@/components/EnquiryForm";
 import { RecentlyViewedRail } from "@/components/RecentlyViewedRail";
