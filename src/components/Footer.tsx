@@ -1,26 +1,30 @@
 import Link from "next/link";
 
-const COLUMNS = [
-  {
-    title: "Explore",
-    links: [
-      { href: "/projects", label: "All Projects" },
-      { href: "/properties", label: "All Properties" },
-      { href: "/cities", label: "Browse by City" },
-      { href: "/compare", label: "Compare" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { href: "/#process", label: "How it works" },
-      { href: "/#faq", label: "FAQs" },
-      { href: "/#enquire", label: "Talk to us" },
-    ],
-  },
-];
+/** Same rule as the header: only offer a section that has something in it. */
+function columns(sections?: { projects: boolean; cities: boolean }) {
+  return [
+    {
+      title: "Explore",
+      links: [
+        ...(sections?.projects ? [{ href: "/projects", label: "All Projects" }] : []),
+        { href: "/properties", label: "All Properties" },
+        ...(sections?.cities ? [{ href: "/cities", label: "Browse by City" }] : []),
+        { href: "/compare", label: "Compare" },
+      ],
+    },
+    {
+      title: "Company",
+      links: [
+        { href: "/#process", label: "How it works" },
+        { href: "/#faq", label: "FAQs" },
+        { href: "/#enquire", label: "Talk to us" },
+      ],
+    },
+  ];
+}
 
-export function Footer() {
+export function Footer({ sections }: { sections?: { projects: boolean; cities: boolean } }) {
+  const COLUMNS = columns(sections);
   return (
     <footer className="border-t border-rule bg-chalk-2">
       <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8">

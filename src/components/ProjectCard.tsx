@@ -52,10 +52,15 @@ export function ProjectCard({ project, priority = false }: { project: Project; p
           <Link href={`/projects/${project.id}`}>
             <h3 className="font-display text-lg text-ink transition-colors group-hover:underline">{project.name}</h3>
           </Link>
-          <p className="mt-1 flex items-center gap-1 text-xs text-ink-faint">
-            <MapPin size={12} />
-            {[project.locality, project.city].filter(Boolean).join(", ")}
-          </p>
+          {/* Only drawn when there is somewhere to name. Both locality and city
+              are optional fields an admin may have removed, and a pin icon
+              followed by nothing reads as a rendering fault. */}
+          {[project.locality, project.city].filter(Boolean).length > 0 && (
+            <p className="mt-1 flex items-center gap-1 text-xs text-ink-faint">
+              <MapPin size={12} />
+              {[project.locality, project.city].filter(Boolean).join(", ")}
+            </p>
+          )}
         </div>
 
         {project.configurations.length > 0 && (

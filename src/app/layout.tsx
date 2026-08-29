@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, JetBrains_Mono, Newsreader } from "next/font/googl
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { liveSections } from "@/lib/sections";
 import { CompareTray } from "@/components/CompareTray";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site-url";
@@ -83,7 +84,12 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Asked once per render pass, cached for a minute by crm-client. Projects
+  // and Cities are only offered when the CRM actually has them — see
+  // lib/sections.ts for why a link to an empty page is worse than no link.
+  const sections = await liveSections();
+
   return (
     <html lang="en" className={`${bricolage.variable} ${newsreader.variable} ${jetbrains.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
@@ -100,9 +106,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             description: "Curated, title-verified property listings synced live from our sales desk.",
           }}
         />
-        <Header />
+        <Header sections={sections} />
         <main className="flex-1">{children}</main>
-        <Footer />
+        <Footer sections={sections} />
         <CompareTray />
       </body>
     </html>

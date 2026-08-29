@@ -9,17 +9,27 @@ import { cn } from "@/lib/cn";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { whatsappLink } from "@/lib/contact";
 
-const NAV = [
-  { href: "/projects", label: "Projects" },
+/**
+ * Properties and Compare are always here. Projects and Cities are only offered
+ * when the CRM has something behind them — see `lib/sections.ts`. A link to an
+ * empty page is worse than no link, because the visitor has to click to find out.
+ */
+const ALWAYS = [
   { href: "/properties", label: "Properties" },
-  { href: "/cities", label: "Cities" },
   { href: "/compare", label: "Compare" },
 ];
 
-export function Header() {
+export function Header({ sections }: { sections?: { projects: boolean; cities: boolean } }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const compareCount = useSiteStore((s) => s.compare.length);
+
+  const NAV = [
+    ...(sections?.projects ? [{ href: "/projects", label: "Projects" }] : []),
+    ALWAYS[0]!,
+    ...(sections?.cities ? [{ href: "/cities", label: "Cities" }] : []),
+    ALWAYS[1]!,
+  ];
 
   return (
     <header className="sticky top-0 z-50 border-b border-line/80 bg-paper/90 backdrop-blur-md">

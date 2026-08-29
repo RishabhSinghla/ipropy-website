@@ -53,10 +53,15 @@ export function PropertyCard({ property, priority = false }: { property: Propert
               {property.project_name ?? property.name}
             </h3>
           </Link>
-          <p className="mt-1 flex items-center gap-1 text-xs text-ink-2">
-            <MapPin size={12} />
-            {[property.locality, property.city].filter(Boolean).join(", ")}
-          </p>
+          {/* Only drawn when there is somewhere to name. Both locality and city
+              are optional fields an admin may have removed, and a pin icon
+              followed by nothing reads as a rendering fault. */}
+          {[property.locality, property.city].filter(Boolean).length > 0 && (
+            <p className="mt-1 flex items-center gap-1 text-xs text-ink-2">
+              <MapPin size={12} />
+              {[property.locality, property.city].filter(Boolean).join(", ")}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-4 text-xs text-ink-soft">
