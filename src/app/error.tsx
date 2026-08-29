@@ -11,7 +11,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
 
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center px-5 py-32 text-center">
-      <AlertTriangle size={40} className="text-accent" />
+      <AlertTriangle size={40} className="text-alert" />
       <h1 className="mt-4 font-display text-2xl text-ink">Something went wrong</h1>
       <p className="mt-3 text-sm text-ink-soft">
         Our sales desk connection hiccuped for a moment. Try again, or head back and pick up where you left off.

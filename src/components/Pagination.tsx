@@ -41,8 +41,8 @@ export function Pagination({
             href={pageHref(p)}
             className={
               p === currentPage
-                ? "flex h-9 w-9 items-center justify-center rounded-full bg-ink text-sm font-medium text-paper"
-                : "flex h-9 w-9 items-center justify-center rounded-full text-sm text-ink-soft hover:bg-paper-dim"
+                ? "flex h-11 w-11 items-center justify-center rounded-full bg-ink text-sm font-medium text-paper"
+                : "flex h-11 w-11 items-center justify-center rounded-full text-sm text-ink-soft hover:bg-paper-dim"
             }
           >
             {p}

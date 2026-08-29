@@ -152,30 +152,3 @@ export interface PropertySearchParams {
 /** Either a Project or a Property — the compare tool works across both. */
 export type Comparable = ({ kind: "project" } & Project) | ({ kind: "property" } & Property);
 
-// --- Blog --------------------------------------------------------------------
-
-export interface BlogPostSummary {
-  slug: string;
-  title: string;
-  excerpt: string | null;
-  category: string | null;
-  cover_image_url: string | null;
-  published_at: string;
-  reading_minutes: number;
-  key_takeaway: string | null;
-  author: string | null;
-}
-
-export interface BlogPost extends BlogPostSummary {
-  body: string | null;
-  word_count: number;
-  /** Pairs surfaced as FAQPage schema — what answer engines actually lift. */
-  faq: { question: string; answer: string }[];
-  seo_title: string | null;
-  seo_description: string | null;
-  seo_keywords: string | null;
-  canonical_url: string | null;
-  author_avatar: string | null;
-  updated_at: string;
-  related: BlogPostSummary[];
-}

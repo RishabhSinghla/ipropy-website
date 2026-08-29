@@ -33,7 +33,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#191510",
+          background: "#0e1211",
           padding: 72,
           fontFamily: "sans-serif",
         }}
@@ -68,7 +68,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
 
         <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
           <span style={{ fontSize: 24, color: "#8a8071" }}>All-inclusive price</span>
-          <span style={{ fontSize: 46, color: "#d99b4e" }}>{price}</span>
+          <span style={{ fontSize: 46, color: "#4cc189" }}>{price}</span>
         </div>
       </div>
     ),

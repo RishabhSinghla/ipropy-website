@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Bricolage_Grotesque, JetBrains_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { liveSections } from "@/lib/sections";
 import { CompareTray } from "@/components/CompareTray";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site-url";
@@ -20,30 +21,46 @@ const THEME_INIT_SCRIPT = `
 })();
 `;
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+// Three faces, three jobs. The grotesque states, the serif explains, the mono
+// reports. A property page is a human decision made on operational facts, and
+// mixing the voices rather than flattening them is the point.
+// All three are variable fonts, so no `weight` is passed — next/font pulls the
+// whole weight axis. `axes` is only for axes *other* than weight, which is why
+// Bricolage names opsz and the other two name nothing. See
+// node_modules/next/dist/docs/01-app/03-api-reference/02-components/font.md.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
-  axes: ["opsz", "SOFT", "WONK"],
+  axes: ["opsz"],
+  display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
   subsets: ["latin"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const jetbrains = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "iPropy — Curated, Title-Verified Properties",
+    default: "iPropy — Builder Floors in Faridabad & NCR",
     template: "%s | iPropy",
   },
   description:
-    "Search, compare and shortlist verified projects and units — synced live from our sales desk, not a stale listings dump.",
+    "Independent builder floors in Faridabad and nearby NCR, read live from our sales desk. See which floors are genuinely free right now, gaps and all.",
   openGraph: {
     siteName: "iPropy",
     type: "website",
-    title: "iPropy — Curated, Title-Verified Properties",
-    description: "Search, compare and shortlist verified projects and units — synced live from our sales desk.",
+    title: "iPropy — Builder Floors in Faridabad & NCR",
+    description: "Independent builder floors in Faridabad and nearby NCR, read live from our sales desk.",
   },
   twitter: { card: "summary_large_image" },
   // iOS ignores the web manifest, so installability there depends on these.
@@ -62,14 +79,19 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf7f2" },
-    { media: "(prefers-color-scheme: dark)", color: "#14120f" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f5f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1211" },
   ],
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Asked once per render pass, cached for a minute by crm-client. Projects
+  // and Cities are only offered when the CRM actually has them — see
+  // lib/sections.ts for why a link to an empty page is worse than no link.
+  const sections = await liveSections();
+
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${bricolage.variable} ${newsreader.variable} ${jetbrains.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
@@ -80,13 +102,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             "@type": "RealEstateAgent",
             name: "iPropy",
             url: SITE_URL,
-            areaServed: "IN",
+            areaServed: "Faridabad, Delhi NCR, India",
             description: "Curated, title-verified property listings synced live from our sales desk.",
           }}
         />
-        <Header />
+        <Header sections={sections} />
         <main className="flex-1">{children}</main>
-        <Footer />
+        <Footer sections={sections} />
         <CompareTray />
       </body>
     </html>

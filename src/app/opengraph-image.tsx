@@ -14,7 +14,7 @@ export default async function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #faf7f2 0%, #f2ede4 100%)",
+          background: "#f4f5f2",
           fontFamily: "sans-serif",
         }}
       >
@@ -25,8 +25,8 @@ export default async function Image() {
             gap: 14,
           }}
         >
-          <span style={{ fontSize: 96, color: "#191510", letterSpacing: -2 }}>IPROPY</span>
-          <span style={{ fontSize: 22, color: "#a9702f", letterSpacing: 4, textTransform: "uppercase" }}>
+          <span style={{ fontSize: 96, color: "#0e1211", letterSpacing: -2 }}>IPROPY</span>
+          <span style={{ fontSize: 22, color: "#1c7e53", letterSpacing: 4, textTransform: "uppercase" }}>
             Bespoke Living
           </span>
         </div>
@@ -38,7 +38,7 @@ export default async function Image() {
             marginTop: 48,
             width: 120,
             height: 4,
-            background: "#a9702f",
+            background: "#1c7e53",
             borderRadius: 999,
             display: "flex",
           }}

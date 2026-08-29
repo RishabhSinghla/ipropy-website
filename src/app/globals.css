@@ -1,110 +1,216 @@
 @import "tailwindcss";
 
-:root {
-  /* Warm, editorial-luxury palette — paper background, ink text, bronze accent. */
-  --paper: #faf7f2;
-  --paper-dim: #f2ede4;
-  --ink: #191510;
-  --ink-soft: #524a3f;
-  --ink-faint: #948a7a;
-  --line: #e6ddcd;
-  --accent: #a9702f;
-  --accent-soft: #f1e2ce;
-  --accent-ink: #5c3d19;
-  --success: #3f6b4a;
-  --danger: #a4402e;
+/*
+  iPropy — "the stack".
 
-  --background: var(--paper);
+  The product is builder floors: an independent floor in a low-rise building.
+  The unit IS the floor, so availability is a vertical fact, and the whole
+  visual language is built from that. Concrete and architectural white carry the
+  page; one signal green is spent, and only ever to mean "this floor is free".
+  It is a status, not a brand colour, so it never appears as decoration.
+*/
+:root {
+  --slab: #0e1211;        /* concrete in shadow — the dark ground */
+  --slab-2: #171d1b;      /* one step up, for raised blocks on dark */
+  --chalk: #f4f5f2;       /* architectural white — the light ground */
+  --chalk-2: #ffffff;     /* card face */
+  --rule: #dcdfd9;
+  --rule-hard: #b6bbb3;
+  --ink: #0e1211;
+  --ink-2: #545b56;
+  /* Solved for 4.5:1 on --chalk, the harder of the two light grounds. The old
+     #868c85 measured 3.14:1 and it carried the facts a buyer came for: carpet
+     area, facing, "4 floors free today". Three of the four things they ask
+     about were printed in the lowest-contrast colour on the page. */
+  --ink-3: #6c716b;
+
+  /* The three states a floor can be in. Nothing else uses these.
+     Each solved for 4.5:1 on --chalk so a 10px status label still passes. */
+  --open: #1c7e53;
+  --open-wash: #e4f1ea;
+  --held: #9c6311;
+  --held-wash: #f7eddc;
+  --taken: #6e706c;
+  --taken-wash: #ebece9;
+
+  /* Failure. Its own colour, because an error drawn in the availability green
+     tells the visitor the opposite of what happened. */
+  --alert: #9e3524;
+  --alert-wash: #f7e6e2;
+
+  --background: var(--chalk);
   --foreground: var(--ink);
 }
 
 .dark {
-  --paper: #14120f;
-  --paper-dim: #1c1913;
-  --ink: #f3ede1;
-  --ink-soft: #c9bfab;
-  --ink-faint: #8a8071;
-  --line: #322c22;
-  --accent: #d99b4e;
-  --accent-soft: #3a2c17;
-  --accent-ink: #f1cf9b;
+  --slab: #080b0a;
+  --slab-2: #121716;
+  --chalk: #0e1211;
+  --chalk-2: #171d1b;
+  --rule: #2a312e;
+  --rule-hard: #454e4a;
+  --ink: #eef0ec;
+  --ink-2: #a8afa9;
+  --ink-3: #808781;  /* 4.64:1 on the raised card, was 4.10 */
 
-  --background: var(--paper);
+  --open: #4cc189;
+  --open-wash: #102b20;
+  --held: #d9a04a;
+  --held-wash: #2e2211;
+  --taken: #818682;
+  --taken-wash: #1c2220;
+  --alert: #e8836f;
+  --alert-wash: #3a1c16;
+
+  --background: var(--chalk);
   --foreground: var(--ink);
 }
 
 @theme inline {
-  --color-paper: var(--paper);
-  --color-paper-dim: var(--paper-dim);
+  --color-slab: var(--slab);
+  --color-slab-2: var(--slab-2);
+  --color-chalk: var(--chalk);
+  --color-chalk-2: var(--chalk-2);
+  --color-rule: var(--rule);
+  --color-rule-hard: var(--rule-hard);
   --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-ink-faint: var(--ink-faint);
-  --color-line: var(--line);
-  --color-accent: var(--accent);
-  --color-accent-soft: var(--accent-soft);
-  --color-accent-ink: var(--accent-ink);
-  --color-success: var(--success);
-  --color-danger: var(--danger);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-open: var(--open);
+  --color-open-wash: var(--open-wash);
+  --color-held: var(--held);
+  --color-held-wash: var(--held-wash);
+  --color-taken: var(--taken);
+  --color-taken-wash: var(--taken-wash);
+  --color-alert: var(--alert);
+  --color-alert-wash: var(--alert-wash);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  --font-display: var(--font-fraunces);
-  --font-sans: var(--font-inter);
+  /*
+    Aliases for pages still on the old names. `accent` deliberately resolves to
+    ink, NOT to the availability green: pointing it at `--open` quietly turned a
+    status into a brand colour and spent it on eyebrows, icons and link hovers
+    in 37 places, including a green warning triangle on the error page. A signal
+    used everywhere signals nothing.
+  */
+  --color-paper: var(--chalk);
+  --color-paper-dim: var(--chalk-2);
+  --color-ink-soft: var(--ink-2);
+  --color-ink-faint: var(--ink-3);
+  --color-line: var(--rule);
+  --color-accent: var(--ink);
+  --color-accent-soft: var(--chalk);
+  --color-accent-ink: var(--ink);
+  --color-success: var(--open);
+  --color-danger: var(--alert);
 
-  --animate-fade-up: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-fade-in: fade-in 0.5s ease-out both;
-}
-
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  --font-display: var(--font-bricolage);
+  --font-sans: var(--font-newsreader);
+  --font-mono: var(--font-jetbrains);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-}
-
-::selection {
-  background: var(--accent-soft);
-  color: var(--accent-ink);
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 .font-display {
-  font-family: var(--font-display), ui-serif, Georgia, serif;
+  font-family: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  text-wrap: balance;
 }
 
-/* Custom rounded pills/cards lose the browser's default focus ring —
-   keyboard users need a visible one back, mouse users don't see it. */
+.font-data {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+  In @layer components so a utility beside it wins.
+  Unlayered, this rule beat Tailwind regardless of specificity: `label text-ink
+  text-[9px]` rendered neither the colour nor the size it asked for.
+*/
+@layer components {
+.label {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+}
+
+::selection { background: var(--open-wash); color: var(--open); }
+
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--open);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
-/* Thin, refined scrollbars for the compare table's horizontal scroll. */
+/*
+  The one orchestrated moment on the page: floors light up from the ground up,
+  the way a building fills. Each floor sets its own --i for the delay.
+*/
+@keyframes floor-in {
+  from { opacity: 0; transform: translateY(10px) scaleY(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.floor-in { animation: floor-in 0.55s cubic-bezier(0.2, 0.9, 0.3, 1) both; animation-delay: calc(var(--i) * 90ms); }
+.rise     { animation: rise 0.6s cubic-bezier(0.2, 0.9, 0.3, 1) both; animation-delay: calc(var(--i, 0) * 80ms); }
+.breathe  { animation: breathe 2.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .floor-in, .rise, .breathe { animation: none; }
+}
+
+/*
+  A floor nobody has listed. Drawn as a hatched void rather than left blank,
+  because an empty band reads as a rendering fault and a hatch reads as "there
+  is a floor here and it is not for sale" — which is the true statement.
+*/
+.hatch {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 5px,
+    var(--rule) 5px,
+    var(--rule) 6px
+  );
+}
+
+/* The plinth the whole building sits on. */
+.ground {
+  box-shadow: inset 0 -3px 0 0 var(--ink);
+}
+
 .scrollbar-thin::-webkit-scrollbar { height: 6px; width: 6px; }
-.scrollbar-thin::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 999px; }
 .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
 
-/* Blog body. Written in Markdown in the CRM and rendered by lib/markdown.ts,
-   which emits only this small set of tags. */
-.prose-post { color: var(--ink-soft, #4b5563); line-height: 1.75; }
-.prose-post > * + * { margin-top: 1.15rem; }
-.prose-post h2 { font-size: 1.5rem; line-height: 1.3; color: var(--ink, #111827); margin-top: 2.5rem; }
-.prose-post h3 { font-size: 1.2rem; line-height: 1.35; color: var(--ink, #111827); margin-top: 2rem; }
-.prose-post strong { color: var(--ink, #111827); font-weight: 600; }
-.prose-post ul { list-style: disc; padding-left: 1.4rem; }
-.prose-post li + li { margin-top: 0.4rem; }
-.prose-post a { color: var(--ink, #111827); text-decoration: underline; text-underline-offset: 2px; }
-.prose-post blockquote { border-left: 2px solid var(--line, #e5e7eb); padding-left: 1rem; font-style: italic; }
-.prose-post code { background: var(--paper-dim, #f3f4f6); padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.9em; }
+/*
+  The article styles that used to live here went with the blog. Ten rules for a
+  page that no longer exists, one of which the detector rightly flagged: a
+  left-rule blockquote is the stock treatment. Deleted rather than restyled,
+  because the honest fix for dead code is to remove it.
+*/
