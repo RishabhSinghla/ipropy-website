@@ -81,6 +81,30 @@ npm run build    # typecheck + production build
 npm run lint      # eslint
 ```
 
+## Three sections depend on two CRM fields, and both are missing in production
+
+A project on this site is not a record. It is units grouped by `project_name`, and the cities list
+is those units grouped by `city`. Delete either field in the CRM and there is genuinely no such
+thing as a project or a city, so the API correctly answers with an empty list and this site hides
+the section rather than showing an empty one.
+
+That is the state of production today. `/api/public/projects` and `/api/public/cities` both return
+nothing, so **the projects catalogue, every project page, the "Where we work" list and the city
+dropdown in search are all empty on the live site.** It looks like having no stock. It isn't.
+
+Both fields are on the CRM's protected list now (`FIELDS_USED_IN_CODE`), so neither can be deleted
+or renamed again without an explicit refusal. Restoring them and filling them in on each unit is an
+admin job in the CRM, not a change here.
+
+Check with:
+
+```bash
+curl -s https://ipropy-crm.onrender.com/api/public/cities
+```
+
+An `items: []` means the field is gone or no published unit has a value in it — never that the code
+is broken.
+
 ## What's not here yet
 
 Locality-level (as opposed to city-level) SEO pages, map-based search, and deployment — this
