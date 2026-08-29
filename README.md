@@ -81,20 +81,21 @@ npm run build    # typecheck + production build
 npm run lint      # eslint
 ```
 
-## Three sections depend on two CRM fields, and both are missing in production
+## Two CRM fields are gone on purpose, and this site follows
 
 A project on this site is not a record. It is units grouped by `project_name`, and the cities list
 is those units grouped by `city`. Delete either field in the CRM and there is genuinely no such
 thing as a project or a city, so the API correctly answers with an empty list and this site hides
 the section rather than showing an empty one.
 
-That is the state of production today. `/api/public/projects` and `/api/public/cities` both return
-nothing, so **the projects catalogue, every project page, the "Where we work" list and the city
-dropdown in search are all empty on the live site.** It looks like having no stock. It isn't.
+That is the state of production today, **and it is deliberate**. This business sells builder floors
+in one area, so a project grouping and a city filter are both noise on its own site. Neither field is
+coming back, and the CRM does not stop an admin removing them.
 
-Both fields are on the CRM's protected list now (`FIELDS_USED_IN_CODE`), so neither can be deleted
-or renamed again without an explicit refusal. Restoring them and filling them in on each unit is an
-admin job in the CRM, not a change here.
+So this site adapts rather than complains. `lib/sections.ts` asks the CRM what actually exists, and
+the header and footer only offer Projects and Cities when there is something behind them. Nothing
+links to an empty page. Add project names back in the CRM tomorrow and both links return on their
+own, with no deploy here.
 
 Check with:
 
