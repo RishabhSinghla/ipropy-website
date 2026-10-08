@@ -1,14 +1,14 @@
-# iPropy — ipropy.com and property.ipropy.com
+# iPropy — property.ipropy.com
 
-One Next.js app (App Router, TypeScript, Tailwind) that is two things:
+The property portal, one Next.js app (App Router, TypeScript, Tailwind), on its own subdomain
+the way the CRM is on `crm.ipropy.com`. **ipropy.com itself is not touched** (owner's decision,
+8 October 2026).
 
-* **ipropy.com** — the company's front page: what iPropy does, the newest homes, where we have
-  them, how it works, and a way to get in touch or sell a property.
-* **property.ipropy.com** — the property portal: search, filters with live counts, a page per
-  home, compare up to four, a saved list, and an enquiry that lands in the CRM as a lead.
+* `/` — the portal's home: search, the newest homes, the localities, buy/sell/ask, enquiry.
+* `/properties` — search with filters and live counts; `/properties/:id` — one home.
+* `/sell`, `/compare`, `/saved`.
 
-On the portal's host, `/` opens the search (`next.config.ts`, `PORTAL_HOST`). Everything else is
-the same pages on both addresses. `crm.ipropy.com` stays the CRM.
+Hosted on Vercel; see "Going live" below.
 
 ## Where the homes come from
 
@@ -75,10 +75,15 @@ src/
 | `ENQUIRY_FORM_KEY` | Server-only. The CRM web form's key (seeded as `website-enquiry`). |
 | `NEXT_PUBLIC_CRM_MEDIA_URL` | The host the browser loads photos from (the CRM). |
 | `NEXT_PUBLIC_SITE_URL` | Absolute URLs in the sitemap and share links. |
-| `PORTAL_HOST` | The portal's address (default `property.ipropy.com`). |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Optional business WhatsApp number; no button when unset. |
 
-## Not here yet
+## Going live (Vercel)
 
-Hosting and the two domains are not set up — this runs locally and in CI. The blog pages read a
+Import this repo into Vercel, set the variables above with `CRM_API_URL` and
+`NEXT_PUBLIC_CRM_MEDIA_URL` = `https://crm.ipropy.com` and `NEXT_PUBLIC_SITE_URL` =
+`https://property.ipropy.com`, then add `property.ipropy.com` under Domains and create the CNAME
+record Vercel shows at the domain's DNS provider. Every push to `main` redeploys.
+
+## Not here yet
+ The blog pages read a
 CRM feed that does not exist, so they are out of the menus until it does.

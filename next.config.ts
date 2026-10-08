@@ -4,10 +4,6 @@ import type { NextConfig } from "next";
 // lib/media.ts mediaUrl()) — next/image needs that host allow-listed.
 const crmHost = new URL(process.env.NEXT_PUBLIC_CRM_MEDIA_URL ?? "http://localhost:4000");
 
-// The portal's own address. On it, "/" is the search page; on ipropy.com it
-// is the company's front page. One app serves both.
-const PORTAL_HOST = process.env.PORTAL_HOST ?? "property.ipropy.com";
-
 const nextConfig: NextConfig = {
   images: {
     // Only on a developer's machine, where the CRM is localhost. The live CRM
@@ -21,13 +17,6 @@ const nextConfig: NextConfig = {
         pathname: "/api/public/media/**",
       },
     ],
-  },
-  async rewrites() {
-    return {
-      beforeFiles: [
-        { source: "/", has: [{ type: "host", value: PORTAL_HOST }], destination: "/properties" },
-      ],
-    };
   },
   async redirects() {
     // The old site's project and city pages were built on fields production
