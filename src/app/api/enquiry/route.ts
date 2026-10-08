@@ -29,6 +29,7 @@ export async function POST(req: Request) {
   const listing = body.listing as { id?: unknown; title?: unknown; url?: unknown } | undefined;
   const lines = [
     body.intent === "sell" ? "Wants to SELL a property through iPropy." : "",
+    body.intent === "alert" ? "Wants a call when a home like this comes in:" : "",
     listing ? `Enquiry about: ${text(listing.title, 160)} — ${text(listing.url, 300)}` : "",
     text(body.message, 1000),
   ].filter(Boolean);

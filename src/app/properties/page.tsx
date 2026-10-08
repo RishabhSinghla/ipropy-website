@@ -1,15 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getListingFacets, listListings } from "@/lib/crm-client";
-import { PAGE_SIZE, searchFromParams } from "@/lib/listing";
+import { describeSearch, PAGE_SIZE, searchFromParams } from "@/lib/listing";
+import { AlertSignup } from "@/components/AlertSignup";
 import { ListingCard } from "@/components/ListingCard";
 import { PortalFilters } from "@/components/PortalFilters";
 import { Pagination } from "@/components/Pagination";
 
-export const metadata: Metadata = {
-  title: "Properties for sale",
-  description: "Builder floors, flats, plots and houses — every one listed by our own team, live from our sales desk.",
-};
+export async function generateMetadata({ searchParams }: PageProps<"/properties">): Promise<Metadata> {
+  const search = searchFromParams(await searchParams);
+  const narrowed = Boolean(search.locality || search.bedrooms || search.category || search.city || search.maxPrice || search.minPrice);
+  const title = narrowed ? `${describeSearch(search)} for sale` : "Properties for sale";
+  return {
+    title,
+    description: `${title} — every home listed by our own team, live from our sales desk, with real photos and a person to call.`,
+    // One canonical address per locality page; filters beyond that are variations of it.
+    alternates: { canonical: search.locality?.length === 1 ? `/properties?locality=${encodeURIComponent(search.locality[0])}` : "/properties" },
+  };
+}
 
 export default async function PropertiesPage({ searchParams }: PageProps<"/properties">) {
   const sp = await searchParams;
@@ -41,7 +49,10 @@ export default async function PropertiesPage({ searchParams }: PageProps<"/prope
 
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
         {result.items.length === 0 ? (
-          <EmptyState anyListings={facets.total > 0} />
+          <div className="space-y-6">
+            <EmptyState anyListings={facets.total > 0} />
+            <AlertSignup criteria={describeSearch(search)} />
+          </div>
         ) : (
           <>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -50,6 +61,9 @@ export default async function PropertiesPage({ searchParams }: PageProps<"/prope
               ))}
             </div>
             <Pagination basePath="/properties" searchParams={flat} page={result.page} pages={result.pages} />
+            <div className="mt-12">
+              <AlertSignup criteria={describeSearch(search)} />
+            </div>
           </>
         )}
       </div>

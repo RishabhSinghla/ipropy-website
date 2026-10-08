@@ -29,3 +29,15 @@ export function listingJsonLd(listing: Listing) {
     }),
   };
 }
+
+/** Properties › Locality › this home — what search results show as the page's path. */
+export function breadcrumbJsonLd(listing: Listing) {
+  const crumbs = [{ name: "Properties", url: `${SITE_URL}/properties` }];
+  if (listing.locality) crumbs.push({ name: listing.locality, url: `${SITE_URL}/properties?locality=${encodeURIComponent(listing.locality)}` });
+  crumbs.push({ name: listing.title, url: `${SITE_URL}/properties/${listing.id}` });
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: crumbs.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: c.url })),
+  };
+}

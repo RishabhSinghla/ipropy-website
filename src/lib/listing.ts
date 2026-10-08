@@ -96,3 +96,17 @@ export function searchFromParams(sp: RawParams): ListingSearch {
     page: Number(one(sp.page)) || undefined,
   };
 }
+
+/** A search in words — "3 BHK in Greenfields under ₹1 Cr" — for alerts and page titles. */
+export function describeSearch(search: ListingSearch): string {
+  const size = search.bedrooms?.length ? `${search.bedrooms.join(" or ")}${/bhk/i.test(search.bedrooms.join("")) ? "" : " BHK"}` : "";
+  const kind = search.category?.join(" or ") ?? "";
+  const what = [size, kind || (size ? "homes" : "")].filter(Boolean).join(" ") || "Homes";
+  const where = search.locality?.length ? ` in ${search.locality.join(", ")}` : search.city?.length ? ` in ${search.city.join(", ")}` : "";
+  let budget = "";
+  if (search.minPrice && search.maxPrice) budget = ` between ${formatIndianPrice(search.minPrice)} and ${formatIndianPrice(search.maxPrice)}`;
+  else if (search.maxPrice) budget = ` under ${formatIndianPrice(search.maxPrice)}`;
+  else if (search.minPrice) budget = ` over ${formatIndianPrice(search.minPrice)}`;
+  const words = search.q ? ` matching "${search.q}"` : "";
+  return `${what}${where}${budget}${words}`;
+}

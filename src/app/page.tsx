@@ -8,6 +8,7 @@ import { ListingCard } from "@/components/ListingCard";
 import { FaqAccordion } from "@/components/FaqAccordion";
 import { EnquiryForm } from "@/components/EnquiryForm";
 import { RecentlyViewedRail } from "@/components/RecentlyViewedRail";
+import { AlertSignup } from "@/components/AlertSignup";
 
 /*
   ipropy.com's front page. Every number on it is read from the CRM at the
@@ -83,6 +84,15 @@ export default async function HomePage() {
           <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {latest.items.map((l, i) => <ListingCard key={l.id} listing={l} priority={i < 3} />)}
           </div>
+        </section>
+      )}
+
+      {latest.items.length === 0 && (
+        <section className="mx-auto max-w-3xl px-5 py-16 sm:px-8">
+          <p className="mb-4 text-center text-sm text-ink-soft">
+            New homes go up here as our team lists them. Tell us what you are after and we will call you first.
+          </p>
+          <AlertSignup criteria="Any home that matches what I tell you on the call" />
         </section>
       )}
 

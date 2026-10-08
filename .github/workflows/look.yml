@@ -1,0 +1,35 @@
+# Open the live site in a real browser (desktop and phone) and report.
+# Read-only; see scripts/look.mjs. Runs on demand and after each production deploy.
+name: Look at the live site
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "The site to look at"
+        default: "https://property.ipropy.com"
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  look:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Install a browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Look
+        env:
+          SITE_URL: ${{ inputs.url || 'https://property.ipropy.com' }}
+        run: node scripts/look.mjs

@@ -44,8 +44,10 @@ every session, without being asked for again.
 
 ## What this site is, and the two rules it exists under
 
-`property.ipropy.com` — search, filters with live counts, a page per home, compare, saved,
-sell, and an enquiry that lands in the CRM as a lead. **`ipropy.com` itself is not this
+`property.ipropy.com` — search, filters with live counts, a page per home (full-screen photos,
+facts, EMI, breadcrumbs, a pinned Book-a-visit / WhatsApp / share bar on phones), compare,
+saved, sell, alerts ("tell me when a home like this comes in", which lands in the CRM as a
+lead with the search written in), and an enquiry that lands in the CRM as a lead. **`ipropy.com` itself is not this
 site and is not touched** (owner's decision, 8 October 2026); it is a Wix site, and its DNS
 is managed at Wix, where `crm` and `property` are two CNAME lines.
 
@@ -89,6 +91,12 @@ npm run build        # what Vercel runs
 * **Smoke test** (`.github/workflows/smoke.yml`) opens each deployment as a visitor the
   moment Vercel reports it ready: home, search, sell, a missing home answering 404, the
   sitemap. Read it after a push rather than assuming.
+* **Look at the live site** (`.github/workflows/look.yml`, `scripts/look.mjs`) drives the real
+  `property.ipropy.com` in Chrome — desktop and phone — after each production deploy and on
+  demand: pages open, homes are listed, no phone number on a home's page, a missing home is a
+  404, no sideways scroll, no browser errors. Screenshots come back inside the log between
+  `===SHOT name===` markers as base64 JPEG, because this container cannot reach the site and
+  cannot download artifacts. Read-only: it never sends an enquiry.
 * **Vercel setup** (`.github/workflows/vercel-setup.yml`) holds the four settings and the
   domain, using the `VERCEL_TOKEN` repository secret (Rishabh's; expires October 2027).
   Run it with *apply* off to only look. **Never print a token, never paste one into chat.**

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MapPin, MessageCircle } from "lucide-react";
+import { ChevronRight, MapPin, MessageCircle } from "lucide-react";
 import { getListing, listListings, NotFoundError } from "@/lib/crm-client";
 import type { Listing } from "@/lib/types";
 import {
@@ -15,8 +15,10 @@ import { EnquiryForm } from "@/components/EnquiryForm";
 import { EmiCalculator } from "@/components/EmiCalculator";
 import { CompareButton } from "@/components/CompareButton";
 import { ShareButton } from "@/components/ShareButton";
+import { ListingActionBar } from "@/components/ListingActionBar";
+import { AlertSignup } from "@/components/AlertSignup";
 import { JsonLd } from "@/components/JsonLd";
-import { listingJsonLd } from "@/lib/jsonld";
+import { breadcrumbJsonLd, listingJsonLd } from "@/lib/jsonld";
 import { ViewTracker } from "@/components/ViewTracker";
 import { SITE_URL } from "@/lib/site-url";
 import { WHATSAPP_NUMBER } from "@/lib/constants";
@@ -70,13 +72,22 @@ export default async function ListingPage({ params }: PageProps<"/properties/[id
     : null;
 
   return (
-    <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
+    <div className="mx-auto max-w-7xl px-5 pb-28 pt-8 sm:px-8 lg:pb-8">
       <JsonLd data={listingJsonLd(listing)} />
+      <JsonLd data={breadcrumbJsonLd(listing)} />
       <ViewTracker item={{ id: listing.id, name: listing.title, subtitle: priceText(listing), image: photos[0] ?? null }} />
 
-      <Link href="/properties" className="inline-flex items-center gap-1 text-sm text-ink-soft hover:text-ink">
-        <ArrowLeft size={14} /> All properties
-      </Link>
+      <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm text-ink-soft">
+        <Link href="/properties" className="hover:text-ink">Properties</Link>
+        {listing.locality && (
+          <>
+            <ChevronRight size={13} className="text-ink-faint" />
+            <Link href={`/properties?locality=${encodeURIComponent(listing.locality)}`} className="hover:text-ink">{listing.locality}</Link>
+          </>
+        )}
+        <ChevronRight size={13} className="text-ink-faint" />
+        <span className="truncate text-ink-faint" aria-current="page">{listing.title}</span>
+      </nav>
 
       <div className="mt-5 grid gap-10 lg:grid-cols-[1fr_380px]">
         <div className="min-w-0">
@@ -168,7 +179,7 @@ export default async function ListingPage({ params }: PageProps<"/properties/[id
               </a>
             )}
           </div>
-          <div className="mt-4">
+          <div className="mt-4 scroll-mt-24" id="enquire">
             <EnquiryForm
               listing={{ id: listing.id, title: listing.title, url: pageUrl }}
               title="Book a visit or ask a question"
@@ -178,6 +189,10 @@ export default async function ListingPage({ params }: PageProps<"/properties/[id
         </aside>
       </div>
 
+      <section className="mt-16 border-t border-line pt-12">
+        <AlertSignup criteria={alikeCriteria(listing)} />
+      </section>
+
       {similar.length > 0 && (
         <section className="mt-16 border-t border-line pt-12">
           <h2 className="font-display text-2xl text-ink">More in {listing.locality}</h2>
@@ -186,8 +201,17 @@ export default async function ListingPage({ params }: PageProps<"/properties/[id
           </div>
         </section>
       )}
+      <ListingActionBar title={listing.title} url={pageUrl} whatsapp={whatsapp} />
     </div>
   );
+}
+
+/** "3 BHK Builder Floor in Greenfields, around ₹1.45 Cr" — the search a buyer of this home would run. */
+function alikeCriteria(listing: Listing): string {
+  const what = [listing.bedrooms, listing.category].filter(Boolean).join(" ") || "Homes";
+  const where = listing.locality ? ` in ${listing.locality}` : "";
+  const price = listing.price && !isRate(listing) ? `, around ${priceText(listing)}` : "";
+  return `${what}${where}${price}`;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
