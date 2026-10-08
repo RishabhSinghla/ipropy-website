@@ -103,6 +103,7 @@ jobs:
         if: always()
         run: |
           for url in "https://ipropy-website.vercel.app/" "https://ipropy-website.vercel.app/properties" "https://property.ipropy.com/"; do
+            rm -f /tmp/page.html
             code="$(curl -s -o /tmp/page.html -w '%{http_code}' -m 20 "$url" || true)"
             what="$(grep -o 'homes\? listed right now\|Find your next home\|Something went wrong\|New listings are on their way' /tmp/page.html 2>/dev/null | head -1)"
             echo "  ${code}  ${url}  ${what}"
