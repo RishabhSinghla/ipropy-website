@@ -19,11 +19,16 @@ permissions:
 
 jobs:
   visit:
-    if: github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success'
+    # Production only: a preview's private address sits behind Vercel's login
+    # wall, so a visitor gets a 302 there whatever the site is like.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || inputs.url }}
+      # The public address, not the deployment's own private one (see above).
+      URL: ${{ inputs.url || 'https://property.ipropy.com' }}
     steps:
       - name: Visit
         run: |
