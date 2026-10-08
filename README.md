@@ -1,87 +1,84 @@
-# iPropy — Property Website
+# iPropy — ipropy.com and property.ipropy.com
 
-A customer-facing property showcase site — Next.js (App Router) + TypeScript + Tailwind CSS.
-Projects and units are pulled **live** from the [iPropy CRM](../iPropy-crm)'s own database via a
-small, read-only public API added to that server; enquiry forms write real Leads back into the
-same CRM. There is no separate content database or CMS — the CRM is the single source of truth.
+One Next.js app (App Router, TypeScript, Tailwind) that is two things:
+
+* **ipropy.com** — the company's front page: what iPropy does, the newest homes, where we have
+  them, how it works, and a way to get in touch or sell a property.
+* **property.ipropy.com** — the property portal: search, filters with live counts, a page per
+  home, compare up to four, a saved list, and an enquiry that lands in the CRM as a lead.
+
+On the portal's host, `/` opens the search (`next.config.ts`, `PORTAL_HOST`). Everything else is
+the same pages on both addresses. `crm.ipropy.com` stays the CRM.
+
+## Where the homes come from
+
+Every listing is an **Inventory in the CRM that somebody ticked "Show on website"** (the record's
+More menu). The CRM's `GET /api/public/listings` decides what is public, not this app:
+
+* only ticked inventories, and a ticked one drops off once its status says sold, won, lost,
+  booked or registered;
+* only an allow-list of facts — size, locality, price, floor, facing… — and **never the
+  seller's name or number**. Phone numbers typed into a description are masked.
+
+See `core/sharing/publicListings.ts` in the CRM repo. This app has no way to ask for anything else.
 
 ## Quick start
 
 ```bash
-cp .env.example .env.local   # defaults already point at a local CRM on :4000
+cp .env.example .env.local   # defaults point at a local CRM on :4000
 npm install
 npm run dev                  # http://localhost:3000
 ```
 
-Requires the iPropy CRM API running (`npm run dev` in `../iPropy-crm`, or set `CRM_API_URL` /
-`NEXT_PUBLIC_CRM_MEDIA_URL` to a deployed instance).
+Needs the CRM running (`npm run dev` there), or `CRM_API_URL` / `NEXT_PUBLIC_CRM_MEDIA_URL`
+pointed at a deployed one.
 
-## Why it's built this way
+## How it fits together
 
-**Server-to-server, not browser-to-CRM.** Every listing page is a Server Component (or a route
-handler) that calls the CRM's `GET /api/public/*` endpoints from Node, cached with Next's
-`fetch(..., { next: { revalidate: 60 } })`. The browser never talks to the CRM directly — no CORS
-setup was needed, and the CRM's URL/credentials never ship in client JS. See `lib/crm-client.ts`
-(marked `server-only`) vs. `lib/media.ts` (the one deliberately public exception: gallery/floor-plan
-images are fetched straight from the CRM by the browser, via a `NEXT_PUBLIC_CRM_MEDIA_URL`).
+**Server to server.** Pages are Server Components calling the CRM from Node through
+`lib/crm-client.ts` (server-only, cached 60 seconds). The browser never talks to the CRM, except
+for photos, which it loads from the CRM's public media route.
 
-**The CRM decides what's public, not this app.** `packages/server/src/api/routes/public.ts` in the
-CRM repo hand-picks an explicit column whitelist per query — this app has no way to request a field
-that isn't already deliberately exposed. A record is visible when its status is public-appropriate
-(`New Launch` / `Under Construction` / `Nearing Possession` / `Ready To Move` for projects,
-`Available` for units) **and** its `publish_to_web` field (default on) isn't explicitly turned off —
-an admin can hide any one record from the CRM without changing its status.
+**Enquiries become real leads.** `app/api/enquiry/route.ts` forwards to the CRM's
+`POST /api/webhooks/forms/website-enquiry` — the same lead capture every other source uses. The
+message names the listing, title and link, so the rep calling back knows which home it was.
+A hidden field turns bots away.
 
-**Enquiries become real CRM Leads.** `app/api/enquiry/route.ts` forwards submissions server-side to
-the CRM's existing `POST /api/webhooks/forms/website-enquiry` endpoint — the same lead-capture,
-assignment and SLA pipeline every other lead source already uses. No parallel CRM integration to
-maintain.
+**Saved and Compare need no account.** They live in this browser (`lib/store.ts`) and re-read
+live prices through `app/api/compare/route.ts`; a home that has since sold drops out and the page
+says so.
 
-## Project layout
+## Layout
 
 ```
 src/
   app/
-    page.tsx                 Home — hero search, featured projects, recently viewed, city explorer, process, FAQ
-    projects/                Search/filter grid + [id] detail (gallery, units table, similar projects)
-      [id]/opengraph-image.tsx  branded social-share card, generated per project from live data
-    properties/               Unit-level search + [id] detail (price breakup, EMI calculator)
-      [id]/opengraph-image.tsx
-    cities/                   /cities index + /cities/[city] SEO landing pages (real stats, not filler copy)
-    compare/                  CarWale-style spec-by-spec comparison, up to 4 items, shareable URL
-    api/
-      enquiry/route.ts        Server-side proxy → CRM webform endpoint
-      compare/route.ts        Server-side proxy → CRM project/property lookups for the client-driven compare page
-    sitemap.ts, robots.ts, opengraph-image.tsx (site default), error.tsx, not-found.tsx
-  components/                 Cards, filters, compare table/tray, EMI calculator, enquiry form,
-                               JsonLd, ThemeToggle, RecentlyViewedRail, ViewTracker
+    page.tsx                 ipropy.com front page
+    properties/page.tsx      the portal: search, filters, results
+    properties/[id]/         one home: photos, facts, EMI, enquiry, more nearby, share card
+    sell/                    "Sell with iPropy" — an enquiry marked as a seller
+    compare/, saved/         client pages over this browser's lists
+    api/enquiry, api/compare server-side bridges to the CRM
+    sitemap.ts, robots.ts, llms.txt
+  components/                ListingCard, PortalFilters, Gallery, EnquiryForm, CompareTable…
   lib/
-    crm-client.ts             server-only typed fetch wrapper around CRM_API_URL
-    media.ts                  client-safe image URL helper (NEXT_PUBLIC_CRM_MEDIA_URL)
-    store.ts                  zustand — compare/shortlist/recentlyViewed, persisted to localStorage
-    jsonld.ts                 schema.org RealEstateListing builders for project/property pages
-    amenityIcons.tsx          maps the CRM's 30 canonical amenities to lucide icons
-    types.ts                  mirrors the CRM public API's response shape
+    crm-client.ts            server-only calls to the CRM
+    listing.ts               price/area wording, search parameters
+    types.ts                 the CRM's listing shape
 ```
 
 ## Configuration
 
 | Variable | Purpose |
 |---|---|
-| `CRM_API_URL` | Server-only. Base URL of the CRM API for data fetching. |
-| `ENQUIRY_FORM_KEY` | Server-only. The CRM webform's `public_key` (seeded as `website-enquiry`). |
-| `NEXT_PUBLIC_CRM_MEDIA_URL` | Public. Host the browser fetches gallery/floor-plan images from. |
-| `NEXT_PUBLIC_SITE_URL` | Public. Used to build absolute URLs in `sitemap.xml`. |
+| `CRM_API_URL` | Server-only. The CRM to read from. |
+| `ENQUIRY_FORM_KEY` | Server-only. The CRM web form's key (seeded as `website-enquiry`). |
+| `NEXT_PUBLIC_CRM_MEDIA_URL` | The host the browser loads photos from (the CRM). |
+| `NEXT_PUBLIC_SITE_URL` | Absolute URLs in the sitemap and share links. |
+| `PORTAL_HOST` | The portal's address (default `property.ipropy.com`). |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Optional business WhatsApp number; no button when unset. |
 
-## Commands
+## Not here yet
 
-```bash
-npm run dev      # local dev, hot reload
-npm run build    # typecheck + production build
-npm run lint      # eslint
-```
-
-## What's not here yet
-
-Locality-level (as opposed to city-level) SEO pages, map-based search, and deployment — this
-currently only runs against a local CRM instance.
+Hosting and the two domains are not set up — this runs locally and in CI. The blog pages read a
+CRM feed that does not exist, so they are out of the menus until it does.

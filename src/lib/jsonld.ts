@@ -1,63 +1,31 @@
-import type { Project, Property } from "./types";
+import type { Listing } from "./types";
 import { mediaUrl } from "./media";
+import { isRate } from "./listing";
 import { SITE_URL } from "./site-url";
 
-export function projectJsonLd(project: Project) {
-  const images = project.gallery.map((g) => mediaUrl(g)).filter(Boolean);
+/** schema.org for one listing — what search engines and AI answers read. */
+export function listingJsonLd(listing: Listing) {
+  const images = listing.photos.map((p) => mediaUrl(p)).filter(Boolean);
+  const description = listing.facts.find((f) => f.name === "description")?.value;
   return {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
-    name: project.name,
-    description: project.description ?? undefined,
-    url: `${SITE_URL}/projects/${project.id}`,
+    name: listing.title,
+    description: typeof description === "string" ? description : undefined,
+    url: `${SITE_URL}/properties/${listing.id}`,
+    datePosted: listing.listedAt,
     ...(images.length > 0 && { image: images }),
     address: {
       "@type": "PostalAddress",
-      addressLocality: project.locality ?? undefined,
-      addressRegion: project.state ?? undefined,
+      addressLocality: listing.locality ?? undefined,
+      addressRegion: listing.city ?? undefined,
       addressCountry: "IN",
     },
-    ...(project.latitude && project.longitude && {
-      geo: { "@type": "GeoCoordinates", latitude: project.latitude, longitude: project.longitude },
+    ...(listing.area && /sq\.?\s*f/i.test(listing.areaUnit ?? "sq ft") && {
+      floorSize: { "@type": "QuantitativeValue", value: listing.area, unitCode: "FTK" },
     }),
-    ...(project.developer_name && {
-      broker: { "@type": "Organization", name: project.developer_name },
+    ...(listing.price && !isRate(listing) && {
+      offers: { "@type": "Offer", priceCurrency: "INR", price: listing.price, availability: "https://schema.org/InStock" },
     }),
-    offers: {
-      "@type": "AggregateOffer",
-      priceCurrency: "INR",
-      lowPrice: project.price_min ?? undefined,
-      highPrice: project.price_max ?? undefined,
-      availability: "https://schema.org/InStock",
-    },
-  };
-}
-
-export function propertyJsonLd(property: Property) {
-  const images = property.gallery.map((g) => mediaUrl(g)).filter(Boolean);
-  const price = property.total_price ?? property.base_price;
-  return {
-    "@context": "https://schema.org",
-    "@type": "RealEstateListing",
-    name: property.name,
-    description: property.description ?? undefined,
-    url: `${SITE_URL}/properties/${property.id}`,
-    ...(images.length > 0 && { image: images }),
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: property.locality ?? undefined,
-      addressCountry: "IN",
-    },
-    ...(property.latitude && property.longitude && {
-      geo: { "@type": "GeoCoordinates", latitude: property.latitude, longitude: property.longitude },
-    }),
-    numberOfRooms: property.bedrooms ?? undefined,
-    numberOfBathroomsTotal: property.bathrooms ?? undefined,
-    floorSize: property.carpet_area
-      ? { "@type": "QuantitativeValue", value: property.carpet_area, unitCode: "FTK" }
-      : undefined,
-    offers: price
-      ? { "@type": "Offer", priceCurrency: "INR", price, availability: "https://schema.org/InStock" }
-      : undefined,
   };
 }

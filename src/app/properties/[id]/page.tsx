@@ -1,201 +1,188 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, BedDouble, Bath, Compass, Layers, ExternalLink } from "lucide-react";
-import { getProperty, listProperties, NotFoundError } from "@/lib/crm-client";
+import { ArrowLeft, MapPin, MessageCircle } from "lucide-react";
+import { getListing, listListings, NotFoundError } from "@/lib/crm-client";
+import type { Listing } from "@/lib/types";
+import {
+  areaText, factText, listedAgo, priceText, ratePerSqft, isRate,
+} from "@/lib/listing";
+import { mediaUrl } from "@/lib/media";
 import { amenityIcon } from "@/lib/amenityIcons";
-import { formatIndianPrice, formatArea } from "@/lib/format";
 import { Gallery } from "@/components/Gallery";
-import { PropertyCard } from "@/components/PropertyCard";
+import { ListingCard } from "@/components/ListingCard";
 import { EnquiryForm } from "@/components/EnquiryForm";
 import { EmiCalculator } from "@/components/EmiCalculator";
 import { CompareButton } from "@/components/CompareButton";
-import { mediaUrl } from "@/lib/media";
+import { ShareButton } from "@/components/ShareButton";
 import { JsonLd } from "@/components/JsonLd";
-import { propertyJsonLd } from "@/lib/jsonld";
+import { listingJsonLd } from "@/lib/jsonld";
 import { ViewTracker } from "@/components/ViewTracker";
+import { SITE_URL } from "@/lib/site-url";
+import { WHATSAPP_NUMBER } from "@/lib/constants";
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+async function load(id: string): Promise<Listing> {
   try {
-    const property = await getProperty((await params).id);
+    return await getListing(id);
+  } catch (err) {
+    if (err instanceof NotFoundError) notFound();
+    throw err;
+  }
+}
+
+export async function generateMetadata({ params }: PageProps<"/properties/[id]">): Promise<Metadata> {
+  try {
+    const listing = await getListing((await params).id);
+    const bits = [priceText(listing), areaText(listing), [listing.locality, listing.city].filter(Boolean).join(", ")];
     return {
-      title: `${property.configuration ?? property.name} in ${property.project_name ?? property.locality ?? ""}`,
-      description: `${formatArea(property.carpet_area, property.area_unit)} · ${formatIndianPrice(property.total_price)} · ${[property.locality, property.city].filter(Boolean).join(", ")}`,
+      title: listing.title,
+      description: bits.filter(Boolean).join(" · "),
+      alternates: { canonical: `/properties/${listing.id}` },
     };
   } catch {
     return { title: "Property" };
   }
 }
 
-export default async function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
+/** Facts drawn in the headline row; the rest go in the table. */
+const HEADLINE = new Set(["description", "amenities"]);
+
+export default async function ListingPage({ params }: PageProps<"/properties/[id]">) {
   const { id } = await params;
+  const listing = await load(id);
 
-  let property;
-  try {
-    property = await getProperty(id);
-  } catch (err) {
-    if (err instanceof NotFoundError) notFound();
-    throw err;
-  }
+  const photos = listing.photos.map((p) => mediaUrl(p)).filter((u): u is string => Boolean(u));
+  const description = listing.facts.find((f) => f.name === "description");
+  const amenities = listing.facts.find((f) => f.name === "amenities");
+  const table = listing.facts.filter((f) => !HEADLINE.has(f.name));
+  const rate = ratePerSqft(listing);
+  const area = areaText(listing);
 
-  const images = property.gallery.map((g) => mediaUrl(g)).filter((u): u is string => Boolean(u));
-  const price = property.total_price ?? property.base_price ?? 0;
-
-  const priceLines = [
-    { label: "Base Price", value: property.base_price },
-    { label: "Floor Rise Charge", value: property.floor_rise_charge },
-    { label: "PLC", value: property.plc_charge },
-    { label: "Parking Charge", value: property.parking_charge },
-    { label: "Club Membership", value: property.club_membership },
-    { label: "Maintenance Deposit", value: property.maintenance_deposit },
-    { label: "Other Charges", value: property.other_charges },
-  ].filter((l) => l.value);
-
-  const related = property.project_id
-    ? (await listProperties({ project: property.project_id, limit: 4 })).items.filter((u) => u.id !== property.id)
+  // Nearby first: the same locality, then anything else.
+  const nearby = listing.locality
+    ? (await listListings({ locality: [listing.locality], limit: 7 })).items
     : [];
+  const similar = nearby.filter((l) => l.id !== listing.id).slice(0, 3);
 
-  const facts = [
-    { icon: BedDouble, label: "Bedrooms", value: property.bedrooms ?? "—" },
-    { icon: Bath, label: "Bathrooms", value: property.bathrooms ?? "—" },
-    { icon: Compass, label: "Facing", value: property.facing ?? "—" },
-    { icon: Layers, label: "Floor", value: property.floor ?? "—" },
-  ];
+  const pageUrl = `${SITE_URL}/properties/${listing.id}`;
+  const whatsapp = WHATSAPP_NUMBER
+    ? `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hi, I am interested in: ${listing.title} (${pageUrl})`)}`
+    : null;
 
   return (
-    <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
-      <JsonLd data={propertyJsonLd(property)} />
-      <ViewTracker item={{ id: property.id, kind: "property", name: property.name, subtitle: property.project_name ?? undefined, image: images[0] ?? null }} />
-      <nav className="mb-6 flex items-center gap-1.5 text-xs text-ink-faint">
-        <Link href="/" className="hover:text-ink">Home</Link>
-        <span>/</span>
-        <Link href="/properties" className="hover:text-ink">Properties</Link>
-        <span>/</span>
-        <span className="text-ink-soft">{property.name}</span>
-      </nav>
+    <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
+      <JsonLd data={listingJsonLd(listing)} />
+      <ViewTracker item={{ id: listing.id, name: listing.title, subtitle: priceText(listing), image: photos[0] ?? null }} />
 
-      <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
-        <div>
-          <Gallery images={images} alt={property.name} />
+      <Link href="/properties" className="inline-flex items-center gap-1 text-sm text-ink-soft hover:text-ink">
+        <ArrowLeft size={14} /> All properties
+      </Link>
+
+      <div className="mt-5 grid gap-10 lg:grid-cols-[1fr_380px]">
+        <div className="min-w-0">
+          <Gallery images={photos} alt={listing.title} />
 
           <div className="mt-8 flex flex-wrap items-start justify-between gap-4">
             <div>
-              {property.configuration && (
-                <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent-ink">{property.configuration}</span>
+              <h1 className="font-display text-3xl leading-tight text-ink sm:text-4xl">{listing.title}</h1>
+              {(listing.locality || listing.city) && (
+                <p className="mt-2 flex items-center gap-1.5 text-sm text-ink-soft">
+                  <MapPin size={14} /> {[listing.locality, listing.city].filter(Boolean).join(", ")}
+                </p>
               )}
-              <h1 className="mt-3 font-display text-3xl text-ink sm:text-4xl">
-                {property.project_name ?? property.name}
-              </h1>
-              <p className="mt-2 flex items-center gap-1.5 text-sm text-ink-soft">
-                <MapPin size={14} />
-                {[property.locality, property.city].filter(Boolean).join(", ")}
-                {property.tower && ` · ${property.tower}${property.wing ? ` / ${property.wing}` : ""}`}
-              </p>
-              {property.project_id && (
-                <Link href={`/projects/${property.project_id}`} className="mt-1 inline-block text-xs font-medium text-accent hover:underline">
-                  View full project →
-                </Link>
-              )}
+              <p className="mt-1 text-xs text-ink-faint">{listedAgo(listing.listedAt)}</p>
             </div>
-            <CompareButton item={{ id: property.id, kind: "property", name: property.name, subtitle: property.project_name ?? undefined, image: images[0] ?? null }} />
+            <div className="flex flex-wrap gap-2">
+              <CompareButton item={{ id: listing.id, name: listing.title, subtitle: priceText(listing), image: photos[0] ?? null }} />
+              <ShareButton title={listing.title} url={pageUrl} />
+            </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-2 gap-4 rounded-2xl border border-line bg-paper-dim p-5 sm:grid-cols-4">
-            {facts.map((f) => (
-              <div key={f.label}>
-                <f.icon size={16} className="text-accent" />
-                <div className="mt-2 text-[11px] uppercase tracking-wide text-ink-faint">{f.label}</div>
-                <div className="mt-0.5 text-sm font-medium text-ink">{f.value}</div>
-              </div>
-            ))}
+          <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
+            <Stat label={isRate(listing) ? "Rate" : "Price"} value={priceText(listing)} />
+            <Stat label="Size" value={area ?? "—"} />
+            <Stat label="Configuration" value={listing.bedrooms ?? "—"} />
+            <Stat label={rate ? "Per sq ft" : "Type"} value={rate ?? listing.category ?? "—"} />
           </div>
 
-          <section className="mt-10">
-            <h2 className="font-display text-xl text-ink">Area Details</h2>
-            <div className="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
-              <AreaStat label="Carpet Area" value={property.carpet_area} unit={property.area_unit} />
-              <AreaStat label="Built-up Area" value={property.built_up_area} unit={property.area_unit} />
-              <AreaStat label="Super Built-up" value={property.super_built_up_area} unit={property.area_unit} />
-              <AreaStat label="Balcony Area" value={property.balcony_area} unit={property.area_unit} />
-            </div>
-          </section>
-
-          {priceLines.length > 1 && (
+          {description && (
             <section className="mt-10">
-              <h2 className="font-display text-xl text-ink">Price Breakup</h2>
-              <div className="mt-4 divide-y divide-line border-y border-line text-sm">
-                {priceLines.map((l) => (
-                  <div key={l.label} className="flex items-center justify-between py-3">
-                    <span className="text-ink-soft">{l.label}</span>
-                    <span className="font-medium text-ink">{formatIndianPrice(l.value)}</span>
+              <h2 className="font-display text-2xl text-ink">About this property</h2>
+              <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-ink-soft">{factText(description.value)}</p>
+            </section>
+          )}
+
+          {table.length > 0 && (
+            <section className="mt-10">
+              <h2 className="font-display text-2xl text-ink">Details</h2>
+              <dl className="mt-4 grid gap-x-8 sm:grid-cols-2">
+                {table.map((f) => (
+                  <div key={f.name} className="flex justify-between gap-4 border-b border-line py-3 text-sm">
+                    <dt className="text-ink-faint">{f.label}</dt>
+                    <dd className="text-right font-medium text-ink">{factText(f.value, f.type)}</dd>
                   </div>
                 ))}
-                <div className="flex items-center justify-between py-3 font-display text-base">
-                  <span className="text-ink">All-Inclusive Price</span>
-                  <span className="text-accent">{formatIndianPrice(price)}</span>
-                </div>
-              </div>
+              </dl>
             </section>
           )}
 
-          {property.description && (
+          {amenities && Array.isArray(amenities.value) && amenities.value.length > 0 && (
             <section className="mt-10">
-              <h2 className="font-display text-xl text-ink">Description</h2>
-              <p className="mt-3 text-sm leading-relaxed text-ink-soft">{property.description}</p>
-            </section>
-          )}
-
-          {property.amenities.length > 0 && (
-            <section className="mt-10">
-              <h2 className="font-display text-xl text-ink">Amenities</h2>
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {property.amenities.map((a) => {
+              <h2 className="font-display text-2xl text-ink">Amenities</h2>
+              <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {amenities.value.map((a) => {
                   const Icon = amenityIcon(a);
                   return (
-                    <div key={a} className="flex items-center gap-2 text-sm text-ink-soft">
-                      <Icon size={15} className="shrink-0 text-accent" />
-                      {a}
-                    </div>
+                    <li key={a} className="flex items-center gap-2 text-sm text-ink-soft">
+                      <Icon size={15} className="text-accent" /> {a}
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             </section>
           )}
 
-          {property.floor_plan_url && (
-            <section className="mt-10">
-              <a
-                href={property.floor_plan_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm text-ink-soft transition-colors hover:border-accent hover:text-ink"
-              >
-                View Floor Plan <ExternalLink size={13} />
-              </a>
+          {listing.price && !isRate(listing) && (
+            <section className="mt-10 max-w-md">
+              <EmiCalculator price={listing.price} />
             </section>
           )}
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-2xl border border-line bg-paper p-5">
-            <div className="text-[11px] uppercase tracking-wide text-ink-faint">All-inclusive price</div>
-            <div className="font-display text-2xl text-ink">{formatIndianPrice(price)}</div>
-            {property.rate_per_sqft && <div className="mt-1 text-xs text-ink-faint">{formatIndianPrice(property.rate_per_sqft)}/sq.ft</div>}
+        <aside className="lg:sticky lg:top-24 lg:self-start">
+          <div className="rounded-2xl border border-line bg-paper-dim p-5">
+            <div className="text-[11px] uppercase tracking-wide text-ink-faint">{isRate(listing) ? "Rate" : "Asking price"}</div>
+            <div className="mt-1 font-display text-3xl text-ink">{priceText(listing)}</div>
+            {rate && <div className="text-xs text-ink-faint">{rate}</div>}
+            <p className="mt-3 text-xs leading-relaxed text-ink-soft">
+              You deal with iPropy directly. Ask us anything — price, paperwork, a visit — and we will call you back.
+            </p>
+            {whatsapp && (
+              <a
+                href={whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 flex items-center justify-center gap-2 rounded-full bg-[#25D366] py-2.5 text-sm font-medium text-white"
+              >
+                <MessageCircle size={15} /> Ask on WhatsApp
+              </a>
+            )}
           </div>
-          <EnquiryForm
-            project={property.project_name ?? undefined}
-            title="Interested in this unit?"
-            subtitle="Leave your details and we'll call you to schedule a site visit."
-          />
-          {price > 0 && <EmiCalculator price={price} />}
+          <div className="mt-4">
+            <EnquiryForm
+              listing={{ id: listing.id, title: listing.title, url: pageUrl }}
+              title="Book a visit or ask a question"
+              subtitle="Leave your number — our team calls back the same day."
+            />
+          </div>
         </aside>
       </div>
 
-      {related.length > 0 && (
+      {similar.length > 0 && (
         <section className="mt-16 border-t border-line pt-12">
-          <h2 className="font-display text-2xl text-ink">More Units in {property.project_name}</h2>
-          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {related.map((u) => <PropertyCard key={u.id} property={u} />)}
+          <h2 className="font-display text-2xl text-ink">More in {listing.locality}</h2>
+          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {similar.map((l) => <ListingCard key={l.id} listing={l} />)}
           </div>
         </section>
       )}
@@ -203,12 +190,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
   );
 }
 
-function AreaStat({ label, value, unit }: { label: string; value: number | null; unit: string }) {
-  if (!value) return null;
+function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div>
+    <div className="bg-paper p-4">
       <div className="text-[11px] uppercase tracking-wide text-ink-faint">{label}</div>
-      <div className="mt-1 font-medium text-ink">{formatArea(value, unit)}</div>
+      <div className="mt-1 truncate text-sm font-semibold text-ink">{value}</div>
     </div>
   );
 }

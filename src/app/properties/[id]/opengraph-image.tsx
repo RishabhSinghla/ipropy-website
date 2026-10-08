@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
-import { getProperty } from "@/lib/crm-client";
-import { formatIndianPrice, formatArea } from "@/lib/format";
+import { getListing } from "@/lib/crm-client";
+import { areaText, priceText } from "@/lib/listing";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -14,12 +14,12 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   let configuration = "";
 
   try {
-    const property = await getProperty(id);
-    title = property.project_name ?? property.name;
-    location = [property.locality, property.city].filter(Boolean).join(", ");
-    price = formatIndianPrice(property.total_price ?? property.base_price);
-    area = property.carpet_area ? formatArea(property.carpet_area, property.area_unit) : "";
-    configuration = property.configuration ?? "";
+    const listing = await getListing(id);
+    title = listing.title;
+    location = [listing.locality, listing.city].filter(Boolean).join(", ");
+    price = priceText(listing);
+    area = areaText(listing) ?? "";
+    configuration = listing.category ?? "";
   } catch {
     // fall through to defaults on 404/error
   }

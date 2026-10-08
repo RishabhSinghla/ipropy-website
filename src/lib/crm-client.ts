@@ -1,7 +1,6 @@
 import "server-only";
 import type {
-  BlogPost, BlogPostSummary, CitySummary, Project, ProjectDetail, ProjectSearchParams,
-  Property, PropertySearchParams, PublicFilters,
+  BlogPost, BlogPostSummary, Brand, Listing, ListingFacets, ListingPage, ListingSearch,
 } from "./types";
 
 // Server-only: the CRM's origin never reaches client JS. Every page/route
@@ -14,11 +13,17 @@ const CRM_API_URL = process.env.CRM_API_URL ?? "http://localhost:4000";
 // getting the speed and cacheability of static rendering.
 const REVALIDATE_SECONDS = 60;
 
-async function get<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
+type Params = Record<string, string | number | string[] | undefined>;
+
+async function get<T>(path: string, params?: Params): Promise<T> {
   const url = new URL(`${CRM_API_URL}/api/public${path}`);
   if (params) {
     for (const [key, value] of Object.entries(params)) {
-      if (value !== undefined && value !== "") url.searchParams.set(key, String(value));
+      if (Array.isArray(value)) {
+        if (value.length) url.searchParams.set(key, value.join(","));
+      } else if (value !== undefined && value !== "") {
+        url.searchParams.set(key, String(value));
+      }
     }
   }
   const res = await fetch(url, { next: { revalidate: REVALIDATE_SECONDS } });
@@ -51,7 +56,7 @@ export class NotFoundError extends Error {}
 async function safeGet<T>(
   path: string,
   fallback: T,
-  params?: Record<string, string | number | undefined>,
+  params?: Params,
 ): Promise<T> {
   try {
     return await get<T>(path, params);
@@ -61,43 +66,27 @@ async function safeGet<T>(
   }
 }
 
-export function listProjects(params: ProjectSearchParams = {}): Promise<{ items: Project[]; total: number }> {
-  return safeGet<{ items: Project[]; total: number }>(
-    "/projects",
-    { items: [], total: 0 },
-    params as Record<string, string | number | undefined>,
-  );
+// --- The property portal ----------------------------------------------------
+
+export function listListings(search: ListingSearch = {}): Promise<ListingPage> {
+  return safeGet<ListingPage>("/listings", { items: [], total: 0, page: 1, pages: 0 }, { ...search });
 }
 
-export function getProject(id: string): Promise<ProjectDetail> {
-  return get<ProjectDetail>(`/projects/${id}`);
+/** Throws NotFoundError for a listing that is unticked, sold or never existed. */
+export function getListing(id: string): Promise<Listing> {
+  return get<Listing>(`/listings/${encodeURIComponent(id)}`);
 }
 
-export function listProperties(params: PropertySearchParams = {}): Promise<{ items: Property[]; total: number }> {
-  return safeGet<{ items: Property[]; total: number }>(
-    "/properties",
-    { items: [], total: 0 },
-    params as Record<string, string | number | undefined>,
-  );
-}
-
-export function getProperty(id: string): Promise<Property> {
-  return get<Property>(`/properties/${id}`);
-}
-
-export function getFilters(): Promise<PublicFilters> {
-  // Every key must be present and an array: consumers map over these directly
-  // (SearchBar does `filters.city.map(...)`), so a missing key would swap one
-  // crash for another.
-  return safeGet<PublicFilters>("/filters", {
-    city: [], locality: [], configuration: [], amenities: [],
+export function getListingFacets(): Promise<ListingFacets> {
+  // Every list present and an array: the filters map over them directly.
+  return safeGet<ListingFacets>("/listings/filters", {
+    city: [], locality: [], bedrooms: [], category: [], price: { min: null, max: null }, total: 0,
   });
 }
 
-export function getCities(): Promise<{ items: CitySummary[] }> {
-  return safeGet<{ items: CitySummary[] }>("/cities", { items: [] });
+export function getBrand(): Promise<Brand> {
+  return safeGet<Brand>("/brand", { orgName: "iPropy", tagline: null, socialLinks: [] });
 }
-
 
 // --- Blog --------------------------------------------------------------------
 
@@ -112,7 +101,7 @@ export function listBlogPosts(
   return safeGet<{ items: BlogPostSummary[]; total: number }>(
     "/blog",
     { items: [], total: 0 },
-    params as Record<string, string | number | undefined>,
+    params,
   );
 }
 

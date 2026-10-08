@@ -3,22 +3,26 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, GitCompareArrows } from "lucide-react";
+import { Menu, X, Heart } from "lucide-react";
 import { useSiteStore } from "@/lib/store";
 import { cn } from "@/lib/cn";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useHasMounted } from "@/lib/useHasMounted";
 
 const NAV = [
-  { href: "/projects", label: "Projects" },
-  { href: "/properties", label: "Properties" },
-  { href: "/cities", label: "Cities" },
+  { href: "/properties", label: "Buy" },
+  { href: "/sell", label: "Sell" },
   { href: "/compare", label: "Compare" },
+  { href: "/saved", label: "Saved" },
 ];
 
 export function Header() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const compareCount = useSiteStore((s) => s.compare.length);
+  const mounted = useHasMounted();
+  const compareCount = useSiteStore((s) => s.compare.length) * (mounted ? 1 : 0);
+  const savedCount = useSiteStore((s) => s.shortlist.length) * (mounted ? 1 : 0);
+  const countFor = (href: string) => (href === "/compare" ? compareCount : href === "/saved" ? savedCount : 0);
 
   return (
     <header className="sticky top-0 z-50 border-b border-line/80 bg-paper/90 backdrop-blur-md">
@@ -37,13 +41,13 @@ export function Header() {
               href={item.href}
               className={cn(
                 "relative text-sm font-medium text-ink-soft transition-colors hover:text-ink",
-                pathname.startsWith(item.href) && "text-ink",
+                pathname.startsWith(item.href) && "text-ink underline decoration-accent decoration-2 underline-offset-8",
               )}
             >
               {item.label}
-              {item.href === "/compare" && compareCount > 0 && (
+              {countFor(item.href) > 0 && (
                 <span className="ml-1.5 inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-paper">
-                  {compareCount}
+                  {countFor(item.href)}
                 </span>
               )}
             </Link>
@@ -53,14 +57,14 @@ export function Header() {
         <div className="hidden items-center gap-1 md:flex">
           <ThemeToggle />
           <Link
-            href="/compare"
+            href="/saved"
             className="flex h-9 w-9 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-paper-dim hover:text-ink"
-            aria-label="Compare"
+            aria-label="Saved properties"
           >
-            <GitCompareArrows size={16} />
+            <Heart size={16} />
           </Link>
           <Link
-            href="#enquire"
+            href="/#enquire"
             className="ml-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-transform hover:scale-[1.03]"
           >
             Enquire
@@ -85,11 +89,11 @@ export function Header() {
           <nav className="flex flex-col gap-4">
             {NAV.map((item) => (
               <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className="text-sm font-medium text-ink-soft">
-                {item.label} {item.href === "/compare" && compareCount > 0 && `(${compareCount})`}
+                {item.label} {countFor(item.href) > 0 && `(${countFor(item.href)})`}
               </Link>
             ))}
             <Link
-              href="#enquire"
+              href="/#enquire"
               onClick={() => setOpen(false)}
               className="mt-2 w-fit rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper"
             >

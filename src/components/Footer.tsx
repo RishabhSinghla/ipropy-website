@@ -4,16 +4,15 @@ const COLUMNS = [
   {
     title: "Explore",
     links: [
-      { href: "/projects", label: "All Projects" },
-      { href: "/properties", label: "All Properties" },
-      { href: "/cities", label: "Browse by City" },
+      { href: "/properties", label: "Properties for sale" },
+      { href: "/sell", label: "Sell your property" },
       { href: "/compare", label: "Compare" },
+      { href: "/saved", label: "Saved" },
     ],
   },
   {
     title: "Company",
     links: [
-      { href: "/blog", label: "Insights" },
       { href: "/#process", label: "How it works" },
       { href: "/#faq", label: "FAQs" },
       { href: "/#enquire", label: "Talk to us" },
@@ -29,8 +28,8 @@ export function Footer() {
           <div>
             <div className="font-display text-2xl text-ink">IPROPY</div>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-soft">
-              A curated, title-verified property portal — every listing sourced straight
-              from our sales desk, so what you see here is what&apos;s actually available today.
+              Homes listed by our own team, straight from the system we sell from —
+              so what you see here is what is actually on the market today.
             </p>
           </div>
 
@@ -52,7 +51,7 @@ export function Footer() {
 
         <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-line pt-8 text-xs text-ink-faint sm:flex-row sm:items-center">
           <span>© {new Date().getFullYear()} iPropy. All rights reserved.</span>
-          <span>Listings sync live from our CRM — availability may change without notice.</span>
+          <span>Listings update live. Prices and availability can change without notice.</span>
         </div>
       </div>
     </footer>

@@ -31,7 +31,7 @@ export default async function Image() {
           </span>
         </div>
         <div style={{ marginTop: 24, fontSize: 30, color: "#524a3f", display: "flex" }}>
-          Curated, Title-Verified Properties
+          Homes to buy, and help selling yours
         </div>
         <div
           style={{

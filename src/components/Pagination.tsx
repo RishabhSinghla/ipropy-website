@@ -1,46 +1,45 @@
 import Link from "next/link";
 
+/** Page links that keep every other filter in the address bar as it was. */
 export function Pagination({
   basePath,
   searchParams,
-  total,
-  limit,
-  offset,
+  page,
+  pages,
 }: {
   basePath: string;
   searchParams: Record<string, string>;
-  total: number;
-  limit: number;
-  offset: number;
+  page: number;
+  pages: number;
 }) {
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-  const currentPage = Math.floor(offset / limit) + 1;
-  if (totalPages <= 1) return null;
+  if (pages <= 1) return null;
 
-  function pageHref(page: number) {
+  function pageHref(p: number) {
     const params = new URLSearchParams(searchParams);
-    params.set("offset", String((page - 1) * limit));
-    return `${basePath}?${params.toString()}`;
+    if (p === 1) params.delete("page"); else params.set("page", String(p));
+    const qs = params.toString();
+    return qs ? `${basePath}?${qs}` : basePath;
   }
 
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1).filter(
-    (p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1,
+  const shown = Array.from({ length: pages }, (_, i) => i + 1).filter(
+    (p) => p === 1 || p === pages || Math.abs(p - page) <= 1,
   );
 
   return (
-    <nav className="mt-12 flex items-center justify-center gap-1.5">
-      {currentPage > 1 && (
-        <Link href={pageHref(currentPage - 1)} className="rounded-full border border-line px-4 py-2 text-sm text-ink-soft hover:text-ink">
+    <nav aria-label="Pages" className="mt-12 flex items-center justify-center gap-1.5">
+      {page > 1 && (
+        <Link href={pageHref(page - 1)} className="rounded-full border border-line px-4 py-2 text-sm text-ink-soft hover:text-ink">
           Prev
         </Link>
       )}
-      {pages.map((p, i) => (
+      {shown.map((p, i) => (
         <span key={p} className="flex items-center gap-1.5">
-          {i > 0 && pages[i - 1] !== p - 1 && <span className="px-1 text-ink-faint">…</span>}
+          {i > 0 && shown[i - 1] !== p - 1 && <span className="px-1 text-ink-faint">…</span>}
           <Link
             href={pageHref(p)}
+            aria-current={p === page ? "page" : undefined}
             className={
-              p === currentPage
+              p === page
                 ? "flex h-9 w-9 items-center justify-center rounded-full bg-ink text-sm font-medium text-paper"
                 : "flex h-9 w-9 items-center justify-center rounded-full text-sm text-ink-soft hover:bg-paper-dim"
             }
@@ -49,8 +48,8 @@ export function Pagination({
           </Link>
         </span>
       ))}
-      {currentPage < totalPages && (
-        <Link href={pageHref(currentPage + 1)} className="rounded-full border border-line px-4 py-2 text-sm text-ink-soft hover:text-ink">
+      {page < pages && (
+        <Link href={pageHref(page + 1)} className="rounded-full border border-line px-4 py-2 text-sm text-ink-soft hover:text-ink">
           Next
         </Link>
       )}

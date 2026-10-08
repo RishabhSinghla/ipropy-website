@@ -1,4 +1,5 @@
-import { listBlogPosts, listProjects } from "@/lib/crm-client";
+import { listBlogPosts, listListings } from "@/lib/crm-client";
+import { priceText } from "@/lib/listing";
 import { SITE_URL } from "@/lib/site-url";
 
 export const revalidate = 3600;
@@ -13,9 +14,9 @@ export const revalidate = 3600;
  * answer is the one it finds.
  */
 export async function GET(): Promise<Response> {
-  const [{ items: posts }, { items: projects }] = await Promise.all([
+  const [{ items: posts }, { items: listings }] = await Promise.all([
     listBlogPosts({ limit: 50 }),
-    listProjects({ limit: 30 }),
+    listListings({ limit: 30, sort: "newest" }),
   ]);
 
   const lines = [
@@ -31,12 +32,12 @@ export async function GET(): Promise<Response> {
       return `- [${p.title}](${SITE_URL}/blog/${p.slug})${note ? `: ${note}` : ""}`;
     }),
     "",
-    "## Projects",
-    ...projects.map((p) => `- [${p.name}](${SITE_URL}/projects/${p.id})${p.locality ? `: ${p.locality}, ${p.city}` : ""}`),
+    "## Newest listings",
+    ...listings.map((l) => `- [${l.title}](${SITE_URL}/properties/${l.id}): ${priceText(l)}`),
     "",
     "## Pages",
-    `- [All projects](${SITE_URL}/projects)`,
     `- [All properties](${SITE_URL}/properties)`,
+    `- [Sell your property](${SITE_URL}/sell)`,
     `- [Insights](${SITE_URL}/blog)`,
   ];
 

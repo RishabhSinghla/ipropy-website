@@ -19,7 +19,7 @@ export function RecentlyViewedRail() {
           {items.map((item) => (
             <Link
               key={item.id}
-              href={item.kind === "project" ? `/projects/${item.id}` : `/properties/${item.id}`}
+              href={`/properties/${item.id}`}
               className="group w-48 shrink-0"
             >
               <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-paper-dim">

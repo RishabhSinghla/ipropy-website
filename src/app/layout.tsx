@@ -34,16 +34,16 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "iPropy — Curated, Title-Verified Properties",
+    default: "iPropy — Homes to buy, and help selling yours",
     template: "%s | iPropy",
   },
   description:
-    "Search, compare and shortlist verified projects and units — synced live from our sales desk, not a stale listings dump.",
+    "Search, compare and save homes listed by our own team — updated live from our sales desk, with real people to call about them.",
   openGraph: {
     siteName: "iPropy",
     type: "website",
-    title: "iPropy — Curated, Title-Verified Properties",
-    description: "Search, compare and shortlist verified projects and units — synced live from our sales desk.",
+    title: "iPropy — Homes to buy, and help selling yours",
+    description: "Search, compare and save homes listed by our own team — updated live from our sales desk.",
   },
   twitter: { card: "summary_large_image" },
   // iOS ignores the web manifest, so installability there depends on these.
@@ -81,7 +81,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             name: "iPropy",
             url: SITE_URL,
             areaServed: "IN",
-            description: "Curated, title-verified property listings synced live from our sales desk.",
+            description: "Property listings from our own sales desk, updated live.",
           }}
         />
         <Header />
