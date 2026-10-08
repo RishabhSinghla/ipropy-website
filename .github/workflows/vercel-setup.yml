@@ -108,3 +108,7 @@ jobs:
             what="$(grep -o 'homes\? listed right now\|Find your next home\|Something went wrong\|New listings are on their way' /tmp/page.html 2>/dev/null | head -1)"
             echo "  ${code}  ${url}  ${what}"
           done
+          # The heading is the CRM's own brand line when the CRM answered, and
+          # the built-in "Find your home." when it did not — the one visible
+          # difference between "no homes listed" and "cannot reach the CRM".
+          curl -s -m 20 https://ipropy-website.vercel.app/ | grep -o '<h1[^>]*>.*</h1>' | sed 's/<[^>]*>//g; s/^/  heading: /' | head -1
