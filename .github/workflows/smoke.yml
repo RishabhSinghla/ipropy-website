@@ -1,0 +1,48 @@
+# Open the site as a visitor the moment Vercel says a deployment is ready.
+#
+# The CRM repo asks its live site rather than trusting a green build
+# (scripts/verify-deploy.sh there); this is the same promise for the website.
+# Vercel reports every deployment back to GitHub, so this runs on its own after
+# each push — production and the preview of a pull request alike.
+name: Smoke test
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "The address to check"
+        default: "https://property.ipropy.com"
+
+permissions:
+  contents: read
+
+jobs:
+  visit:
+    if: github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || inputs.url }}
+    steps:
+      - name: Visit
+        run: |
+          set -u
+          fail=0
+          check() { if [ "$2" = "$3" ]; then echo "  ok    $1"; else echo "  FAIL  $1 — expected $2, got $3"; fail=1; fi; }
+          code() { curl -s -o /tmp/page.html -w '%{http_code}' -m 30 "$1"; }
+
+          echo "Checking ${URL}"
+          check "home page opens"              200 "$(code "${URL}/")"
+          check "property search opens"        200 "$(code "${URL}/properties")"
+          grep -q 'Something went wrong' /tmp/page.html && { echo "  FAIL  search page shows an error"; fail=1; }
+          check "sell page opens"              200 "$(code "${URL}/sell")"
+          # A sold or missing home must be a real 404, or search engines keep it.
+          check "a missing home answers 404"   404 "$(code "${URL}/properties/00000000-0000-0000-0000-000000000000")"
+          check "sitemap opens"                200 "$(code "${URL}/sitemap.xml")"
+          echo "  note  $(grep -o '<loc>[^<]*/properties/[0-9a-f-]\{36\}</loc>' /tmp/page.html | wc -l) home(s) listed in the sitemap"
+          # The heading is the CRM's own brand line when the CRM answered and
+          # the built-in "Find your home." when it did not.
+          echo "  note  heading: $(curl -s -m 30 "${URL}/" | grep -o '<h1[^>]*>.*</h1>' | sed 's/<[^>]*>//g' | head -1)"
+          [ "$fail" = "0" ] || { echo "::error::the site at ${URL} is not right"; exit 1; }
+          echo "::notice::${URL} works"

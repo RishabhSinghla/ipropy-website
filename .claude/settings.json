@@ -1,0 +1,49 @@
+{
+  "//": "Shared Claude Code settings for this repo, committed on purpose so every machine and every developer behaves the same — the same arrangement as the CRM repo. Personal additions go in .claude/settings.local.json, which stays gitignored.",
+  "permissions": {
+    "//allow": "Routine and reversible. Approving them once here saves a prompt in every session.",
+    "allow": [
+      "Bash(git push origin main*)",
+      "Bash(npm run dev*)",
+      "Bash(npm run build*)",
+      "Bash(npm run typecheck*)",
+      "Bash(npm run lint*)",
+      "Bash(npm install*)",
+      "Bash(npm ci*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git show*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git stash*)",
+      "Bash(git pull*)",
+      "Bash(gh run list*)",
+      "Bash(gh run view*)",
+      "Bash(gh issue list*)"
+    ],
+    "//deny": "Refused outright: each one throws away work or rewrites what the live site deploys from.",
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f *)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -fd*)",
+      "Bash(vercel --prod*)",
+      "Bash(npx vercel*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/git-identity.cjs\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

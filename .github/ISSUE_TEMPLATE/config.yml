@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Something wrong in the CRM itself
+    url: https://github.com/RishabhSinghla/ipropy-crm/issues/new/choose
+    about: Listings, the "Show on website" switch and enquiries landing as leads live in the CRM repo.

@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "//": "The site reads every listing from the CRM, so start the CRM first (the `ipropy` configuration in the ipropy-crm folder) or each page renders empty. PORT is pinned because the CRM's settings expect the site on 3000.",
+      "name": "ipropy-website",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "PORT=3000 npm run dev"],
+      "port": 3000,
+      "autoPort": false
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# Every change is reviewed by the owner — the same rule as the CRM repo. Several
+# AI agents and people work here in parallel, and an owner on every path is what
+# stops two of them editing the same file in different directions.
+*                    @RishabhSinghla
+
+# The parts where a mistake is an outage rather than a bug.
+/.github/workflows/  @RishabhSinghla
+/next.config.ts      @RishabhSinghla
+/src/lib/crm-client.ts @RishabhSinghla
