@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getBlogPost, NotFoundError } from "@/lib/crm-client";
 import { SITE_URL } from "@/lib/site-url";
 import { renderMarkdown } from "@/lib/markdown";
+import { JsonLd } from "@/components/JsonLd";
 
 export const revalidate = 3600;
 
@@ -49,17 +50,19 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   }
 
   /*
-   * Article + FAQPage JSON-LD.
+   * BlogPosting + FAQPage JSON-LD.
    *
-   * This is the half that answer engines and rich results read: `Article` for
-   * attribution and dates, `FAQPage` for the question/answer pairs. The
-   * `speakable` block marks the one sentence worth quoting aloud, which is
-   * what a voice or AI assistant lifts when it summarises the page.
+   * This is the half that answer engines and rich results read: `BlogPosting`
+   * (the blog kind of schema.org Article) for attribution and dates, `FAQPage`
+   * for the question/answer pairs. The `speakable` block marks the one sentence
+   * worth quoting aloud, which is what a voice or AI assistant lifts when it
+   * summarises the page.
    */
   const articleSchema = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     headline: post.title,
+    url: `${SITE_URL}/blog/${post.slug}`,
     description: post.seo_description || post.excerpt || undefined,
     image: post.cover_image_url || undefined,
     datePublished: post.published_at,
@@ -88,10 +91,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-16 sm:px-8">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
-      {faqSchema && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      )}
+      <JsonLd data={articleSchema} />
+      {faqSchema && <JsonLd data={faqSchema} />}
 
       <nav className="text-sm text-ink-faint">
         <Link href="/blog" className="hover:text-ink">← All insights</Link>

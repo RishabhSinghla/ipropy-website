@@ -3,11 +3,16 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, Heart } from "lucide-react";
+import { Menu, X, Heart, MessageCircle } from "lucide-react";
 import { useSiteStore } from "@/lib/store";
 import { cn } from "@/lib/cn";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useHasMounted } from "@/lib/useHasMounted";
+import { WHATSAPP_NUMBER } from "@/lib/constants";
+
+// WhatsApp sits in the header at every size: a started chat is one of the two
+// things this site exists to produce. No number configured, no button.
+const WHATSAPP_HREF = WHATSAPP_NUMBER ? `https://wa.me/${WHATSAPP_NUMBER}` : null;
 
 const NAV = [
   { href: "/properties", label: "Buy" },
@@ -56,6 +61,17 @@ export function Header() {
 
         <div className="hidden items-center gap-1 md:flex">
           <ThemeToggle />
+          {WHATSAPP_HREF && (
+            <a
+              href={WHATSAPP_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-paper-dim hover:text-ink"
+              aria-label="Chat on WhatsApp"
+            >
+              <MessageCircle size={16} />
+            </a>
+          )}
           <Link
             href="/saved"
             className="flex h-9 w-9 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-paper-dim hover:text-ink"
@@ -72,7 +88,19 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-1 md:hidden">
-          <ThemeToggle />
+          {WHATSAPP_HREF ? (
+            <a
+              href={WHATSAPP_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-ink-soft"
+              aria-label="Chat on WhatsApp"
+            >
+              <MessageCircle size={18} />
+            </a>
+          ) : (
+            <ThemeToggle />
+          )}
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}

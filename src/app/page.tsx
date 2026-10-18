@@ -6,6 +6,8 @@ import { coverOf } from "@/lib/listing";
 import { SearchBar } from "@/components/SearchBar";
 import { ListingCard } from "@/components/ListingCard";
 import { FaqAccordion } from "@/components/FaqAccordion";
+import { JsonLd } from "@/components/JsonLd";
+import { faqJsonLd } from "@/lib/jsonld";
 import { EnquiryForm } from "@/components/EnquiryForm";
 import { RecentlyViewedRail } from "@/components/RecentlyViewedRail";
 import { AlertSignup } from "@/components/AlertSignup";
@@ -156,6 +158,7 @@ export default async function HomePage() {
       <section id="faq" className="mx-auto max-w-3xl px-5 py-20 sm:px-8">
         <h2 className="text-center font-display text-3xl text-ink sm:text-4xl">Questions people ask</h2>
         <div className="mt-10"><FaqAccordion items={FAQS} /></div>
+        <JsonLd data={faqJsonLd(FAQS)} />
       </section>
 
       <section id="enquire" className="border-t border-line bg-paper-dim py-20">

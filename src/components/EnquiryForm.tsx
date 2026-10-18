@@ -62,6 +62,8 @@ export function EnquiryForm({
     );
   }
 
+  // Every box has a visible label: a placeholder is only a hint, and it vanishes the moment you type.
+  const label = "flex flex-col gap-1.5 text-xs font-medium text-ink-soft";
   const field = "w-full rounded-xl border border-line bg-paper px-4 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-accent";
 
   return (
@@ -70,18 +72,30 @@ export function EnquiryForm({
       <p className="mt-1 text-sm text-ink-soft">{subtitle}</p>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <input name="name" required maxLength={80} placeholder="Your name" autoComplete="name" className={field} />
-        <input name="phone" required type="tel" inputMode="tel" maxLength={16} pattern="[0-9+ \-]{10,16}" placeholder="Mobile number" autoComplete="tel" className={field} />
-        <input name="email" type="email" maxLength={120} placeholder="Email (optional)" autoComplete="email" className={`${field} sm:col-span-2`} />
-        <textarea
-          name="message"
-          rows={3}
-          maxLength={1000}
-          placeholder={intent === "sell"
-            ? "Where is it, what is it (e.g. 3 BHK builder floor), and what price do you expect?"
-            : listing ? "Anything you'd like to know? A good time to visit?" : "Budget, locality, size — whatever you know so far."}
-          className={`${field} resize-none sm:col-span-2`}
-        />
+        <label className={label}>
+          Your name
+          <input name="name" required maxLength={80} autoComplete="name" className={field} />
+        </label>
+        <label className={label}>
+          Mobile number
+          <input name="phone" required type="tel" inputMode="tel" maxLength={16} pattern="[0-9+ \-]{10,16}" autoComplete="tel" className={field} />
+        </label>
+        <label className={`${label} sm:col-span-2`}>
+          Email (optional)
+          <input name="email" type="email" maxLength={120} autoComplete="email" className={field} />
+        </label>
+        <label className={`${label} sm:col-span-2`}>
+          {intent === "sell" ? "About your property" : "Message"}
+          <textarea
+            name="message"
+            rows={3}
+            maxLength={1000}
+            placeholder={intent === "sell"
+              ? "Where is it, what is it (e.g. 3 BHK builder floor), and what price do you expect?"
+              : listing ? "Anything you'd like to know? A good time to visit?" : "Budget, locality, size — whatever you know so far."}
+            className={`${field} resize-none`}
+          />
+        </label>
         {/* A field people never see and bots always fill. */}
         <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
       </div>
