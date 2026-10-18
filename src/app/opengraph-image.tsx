@@ -14,7 +14,7 @@ export default async function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "#f4f5f2",
+          background: "linear-gradient(135deg, #faf7f2 0%, #f2ede4 100%)",
           fontFamily: "sans-serif",
         }}
       >
@@ -25,20 +25,20 @@ export default async function Image() {
             gap: 14,
           }}
         >
-          <span style={{ fontSize: 96, color: "#0e1211", letterSpacing: -2 }}>IPROPY</span>
-          <span style={{ fontSize: 22, color: "#1c7e53", letterSpacing: 4, textTransform: "uppercase" }}>
+          <span style={{ fontSize: 96, color: "#191510", letterSpacing: -2 }}>IPROPY</span>
+          <span style={{ fontSize: 22, color: "#a9702f", letterSpacing: 4, textTransform: "uppercase" }}>
             Bespoke Living
           </span>
         </div>
         <div style={{ marginTop: 24, fontSize: 30, color: "#524a3f", display: "flex" }}>
-          Curated, Title-Verified Properties
+          Homes to buy, and help selling yours
         </div>
         <div
           style={{
             marginTop: 48,
             width: 120,
             height: 4,
-            background: "#1c7e53",
+            background: "#a9702f",
             borderRadius: 999,
             display: "flex",
           }}

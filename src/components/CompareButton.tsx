@@ -3,10 +3,14 @@
 import { Heart, GitCompareArrows } from "lucide-react";
 import { useSiteStore, type CompareRef } from "@/lib/store";
 import { cn } from "@/lib/cn";
+import { useHasMounted } from "@/lib/useHasMounted";
 
 export function CompareButton({ item }: { item: CompareRef }) {
-  const shortlisted = useSiteStore((s) => s.isShortlisted(item.id));
-  const comparing = useSiteStore((s) => s.isComparing(item.id));
+  // The saved list lives in this browser, so the server draws "not saved"
+  // and the first paint after hydration corrects it.
+  const mounted = useHasMounted();
+  const shortlisted = useSiteStore((s) => s.isShortlisted(item.id)) && mounted;
+  const comparing = useSiteStore((s) => s.isComparing(item.id)) && mounted;
   const toggleShortlist = useSiteStore((s) => s.toggleShortlist);
   const addToCompare = useSiteStore((s) => s.addToCompare);
   const removeFromCompare = useSiteStore((s) => s.removeFromCompare);
@@ -22,7 +26,7 @@ export function CompareButton({ item }: { item: CompareRef }) {
         )}
       >
         <Heart size={14} fill={shortlisted ? "currentColor" : "none"} />
-        {shortlisted ? "Shortlisted" : "Shortlist"}
+        {shortlisted ? "Saved" : "Save"}
       </button>
       <button
         type="button"

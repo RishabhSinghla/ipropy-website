@@ -1,212 +1,115 @@
 import Link from "next/link";
 import Image from "next/image";
-import { listProjects, listProperties, getFilters, getCities } from "@/lib/crm-client";
-import { mediaUrl } from "@/lib/media";
-import { slugify } from "@/lib/slug";
-import { formatIndianPrice } from "@/lib/format";
+import { ArrowRight, Building2, Handshake, KeyRound, MessageSquareText, Search } from "lucide-react";
+import { getBrand, getListingFacets, listListings } from "@/lib/crm-client";
+import { coverOf } from "@/lib/listing";
 import { SearchBar } from "@/components/SearchBar";
+import { ListingCard } from "@/components/ListingCard";
 import { FaqAccordion } from "@/components/FaqAccordion";
 import { JsonLd } from "@/components/JsonLd";
 import { faqJsonLd } from "@/lib/jsonld";
 import { EnquiryForm } from "@/components/EnquiryForm";
 import { RecentlyViewedRail } from "@/components/RecentlyViewedRail";
-import { FloorStack } from "@/components/FloorStack";
-import type { Property } from "@/lib/types";
+import { AlertSignup } from "@/components/AlertSignup";
 
-/**
- * The page opens on the thing the business actually is.
- *
- * iPropy sells builder floors. A builder floor is one floor of a low-rise
- * building, so the unit and the floor are the same object, and the first
- * question a buyer asks is which floor is still free. Most property sites open
- * on a photograph of a sunset and a search box. This one opens on a building
- * with its floors lit up by whether you can have them, drawn from the same
- * database the sales desk is looking at right now.
- */
+/*
+  ipropy.com's front page. Every number on it is read from the CRM at the
+  moment it is drawn — how many homes are listed, in which localities. Nothing
+  here is a figure somebody typed in to look impressive.
+*/
 
-const FAQS = [
-  {
-    q: "Are these floors actually available?",
-    a: "Yes. Every floor on this page is read live from our sales desk. When a floor is booked it changes here within minutes, not on a weekly refresh, which is why you will sometimes see a building with gaps in it.",
-  },
-  {
-    q: "Do you charge buyers a fee?",
-    a: "No. Our commission comes from the seller side, as is standard. Shortlisting, site visits and negotiation cost you nothing.",
-  },
-  {
-    q: "What is a builder floor, exactly?",
-    a: "One independent floor of a low-rise building, usually four floors to a plot, with its own entrance and no shared lobby. You get the space and privacy of an independent house without the price of the whole plot.",
-  },
-  {
-    q: "I am buying from outside the city. Can you help remotely?",
-    a: "Yes. Video walkthroughs, document checks and registry coordination are routine for our out-of-city and NRI buyers.",
-  },
+const SERVICES = [
+  { icon: Search, title: "Buy", body: "Homes our own team lists, with the facts that matter and real photos. Search them all, compare up to four side by side.", href: "/properties", cta: "Browse properties" },
+  { icon: Building2, title: "Sell", body: "Tell us about your property. We list it, show it to buyers we are already talking to, and keep your number private.", href: "/sell", cta: "Sell with iPropy" },
+  { icon: MessageSquareText, title: "Ask", body: "Not sure what you want yet? Tell us your budget and where you would like to live, and we will call you with options.", href: "#enquire", cta: "Talk to us" },
 ];
 
-/** Group the live units into buildings, biggest first, so the hero has a real one to draw. */
-function byProject(units: Property[]): { project: string; units: Property[] }[] {
-  const map = new Map<string, Property[]>();
-  for (const u of units) {
-    const key = u.project_name?.trim() || u.name;
-    map.set(key, [...(map.get(key) ?? []), u]);
-  }
-  return [...map.entries()]
-    .map(([project, list]) => ({ project, units: list }))
-    .sort((a, b) => b.units.length - a.units.length);
-}
+const PROCESS = [
+  { icon: MessageSquareText, title: "Tell us what you need", body: "Budget, size, locality, timeline — on this site, on WhatsApp or on a call." },
+  { icon: Search, title: "A shortlist, not a flood", body: "We send the few that fit, from the homes we list ourselves." },
+  { icon: KeyRound, title: "Visit with us", body: "We arrange the visits and come along, so you see each home properly." },
+  { icon: Handshake, title: "Through to the keys", body: "Price, paperwork and the bank — we stay with you until it is done." },
+];
+
+const FAQS = [
+  { q: "Are these listings actually available?", a: "They come straight from the system our sales team works in. When a home is sold or taken off the market, it leaves this site on its own within minutes." },
+  { q: "Will I be talking to the owner?", a: "You deal with iPropy. We arrange visits, answer questions and handle the negotiation, so you are never chasing a stranger's phone number." },
+  { q: "Can I sell or rent out my property through you?", a: "Yes — use the Sell page or call us. We never publish an owner's name or number." },
+  { q: "Do you help buyers who are not in the city?", a: "Yes. We can send video walkthroughs and handle much of the paperwork remotely." },
+];
 
 export default async function HomePage() {
-  const [filters, featured, citySummaries, liveUnits] = await Promise.all([
-    getFilters(),
-    listProjects({ limit: 6 }),
-    getCities(),
-    listProperties({ limit: 40 }),
+  const [facets, latest, brand] = await Promise.all([
+    getListingFacets(),
+    listListings({ sort: "newest", limit: 6 }),
+    getBrand(),
   ]);
-
-  const cities = citySummaries.items.slice(0, 10);
-  // Cities we actually hold stock in, not the CRM's 27-city global picklist.
-  // Offering a city with nothing behind it sends a buyer to an empty page,
-  // which reads as a fake catalogue — the exact portal behaviour we beat.
-  const liveCities = [...new Set(liveUnits.items.map((u) => u.city).filter(Boolean))] as string[];
-  const buildings = byProject(liveUnits.items);
-  const hero = buildings[0];
-  const heroImage = mediaUrl(featured.items[0]?.gallery[0]);
-
-  const openNow = liveUnits.items.filter((u) => (u.status ?? "").toLowerCase() === "available");
-  const cheapest = openNow.reduce<number | null>(
-    (min, u) => (u.total_price && (min === null || u.total_price < min) ? u.total_price : min),
-    null,
-  );
+  const hero = latest.items.map(coverOf).find(Boolean);
+  const localities = facets.locality.slice(0, 12);
 
   return (
     <>
-      {/* ── Hero: a building, not a banner ─────────────────────────────── */}
-      <section className="relative overflow-hidden border-b border-rule">
-        {heroImage && (
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-            <Image src={heroImage} alt="" fill priority sizes="100vw" className="object-cover opacity-[0.07]" />
-          </div>
-        )}
-
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 pb-20 pt-16 sm:px-8 lg:grid-cols-[1.05fr_minmax(0,26rem)] lg:items-center lg:gap-16 lg:pb-28 lg:pt-24">
-          <div className="contents lg:block">
-            <p className="rise label flex items-center gap-2" style={{ "--i": 0 } as React.CSSProperties}>
-              <span aria-hidden className="breathe inline-block h-1.5 w-1.5 rounded-full bg-open" />
-              Live from our sales desk
-            </p>
-
-            <h1
-              className="rise font-display mt-5 text-[clamp(2.6rem,7vw,4.75rem)] text-ink"
-              style={{ "--i": 1 } as React.CSSProperties}
-            >
-              {/* The breaks are a desktop composition. On a narrow column they
-                  land mid-clause, so there they are dropped and the line wraps
-                  where it wants to. */}
-              You are not buying{" "}
-              <br className="hidden sm:inline" />
-              a flat. You are buying{" "}
-              <br className="hidden sm:inline" />
-              <span className="text-open">a floor.</span>
-            </h1>
-
-            <p
-              className="rise mt-6 max-w-lg text-lg text-ink-2"
-              style={{ "--i": 2 } as React.CSSProperties}
-            >
-              Builder floors across Faridabad and the NCR, each one an independent floor with its own
-              entrance. We list what is genuinely free right now, gaps and all.
-            </p>
-
-            <div className="rise order-3 mt-9 max-w-xl lg:order-none" style={{ "--i": 3 } as React.CSSProperties}>
-              <SearchBar filters={filters} cities={liveCities} />
-            </div>
-
-            {openNow.length > 0 && (
-              <p
-                className="rise order-4 font-data mt-6 text-xs text-ink-2 lg:order-none"
-                style={{ "--i": 4 } as React.CSSProperties}
-              >
-                {openNow.length} floor{openNow.length === 1 ? "" : "s"} free today
-                {cheapest ? <> · from {formatIndianPrice(cheapest)}</> : null}
-              </p>
-            )}
-          </div>
-
-          {hero ? (
-            <div className="order-2 lg:order-none lg:justify-self-end lg:pt-4">
-              <FloorStack project={hero.project} units={hero.units} />
-            </div>
-          ) : (
-            /* An empty building is an invitation, not an apology. */
-            <div className="rounded-[3px] border border-dashed border-rule-hard p-8 text-center">
-              <p className="font-display text-lg text-ink">Every floor is spoken for</p>
-              <p className="mt-2 text-sm text-ink-2">
-                Nothing is free this minute. Tell us what you are looking for and we will call you the
-                day one opens.
-              </p>
-              <Link
-                href="#enquire"
-                className="font-data mt-5 inline-block border-b border-open pb-0.5 text-xs uppercase tracking-[0.12em] text-open"
-              >
-                Get first refusal
-              </Link>
-            </div>
+      <section className="relative overflow-hidden bg-paper-dim">
+        <div className="absolute inset-0 -z-10">
+          {hero && <Image src={hero} alt="" fill priority sizes="100vw" className="object-cover opacity-[0.14]" />}
+          <div className="absolute inset-0 bg-gradient-to-b from-paper-dim via-paper-dim/95 to-paper" />
+        </div>
+        <div className="mx-auto max-w-4xl px-5 pb-16 pt-20 text-center sm:px-8 sm:pb-24 sm:pt-28">
+          {facets.total > 0 && (
+            <span className="animate-fade-in inline-block rounded-full border border-line bg-paper px-4 py-1.5 text-xs font-medium tracking-wide text-ink-soft">
+              {facets.total.toLocaleString("en-IN")} {facets.total === 1 ? "home" : "homes"} listed right now
+            </span>
           )}
+          <h1 className="animate-fade-up mt-6 font-display text-4xl leading-[1.1] text-ink sm:text-6xl" style={{ animationDelay: "0.1s" }}>
+            {brand.tagline ?? <>Find your home. <span className="italic text-accent">Sell yours.</span></>}
+          </h1>
+          <p className="animate-fade-up mx-auto mt-5 max-w-xl text-base text-ink-soft sm:text-lg" style={{ animationDelay: "0.2s" }}>
+            Real homes, listed by our own team and updated the moment anything changes — and real people to call about them.
+          </p>
+          <div className="animate-fade-up mx-auto mt-10 max-w-2xl" style={{ animationDelay: "0.3s" }}>
+            <SearchBar facets={facets} />
+          </div>
         </div>
       </section>
 
-      {/* ── The rest of the buildings ──────────────────────────────────── */}
-      {buildings.length > 1 && (
+      {latest.items.length > 0 && (
         <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <span className="label">Every building we hold</span>
-              <h2 className="font-display mt-2 text-3xl text-ink sm:text-4xl">
-                Floor by floor, as it stands
-              </h2>
+              <span className="text-xs font-semibold uppercase tracking-[0.15em] text-accent">Just listed</span>
+              <h2 className="mt-2 font-display text-3xl text-ink sm:text-4xl">New on iPropy</h2>
             </div>
-            <Link href="/properties" className="font-data inline-flex min-h-11 shrink-0 items-center text-xs uppercase tracking-[0.12em] text-ink-2 hover:text-ink">
-              All floors →
+            <Link href="/properties" className="hidden items-center gap-1 text-sm font-medium text-ink-soft hover:text-ink sm:flex">
+              All properties <ArrowRight size={14} />
             </Link>
           </div>
-
-          <div className="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-            {buildings.slice(1, 7).map((b) => (
-              <FloorStack key={b.project} project={b.project} units={b.units} />
-            ))}
+          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {latest.items.map((l, i) => <ListingCard key={l.id} listing={l} priority={i < 3} />)}
           </div>
         </section>
       )}
 
-      {/*
-        The projects grid used to sit here. It showed the same buildings the
-        stacks above had already drawn, in a second visual language, and said
-        "3 units available" for a building whose own caption said "3 of 4 floors
-        free". One fact, two vocabularies, 400px apart. The stack is the truth,
-        so the duplicate went.
-      */}
+      {latest.items.length === 0 && (
+        <section className="mx-auto max-w-3xl px-5 py-16 sm:px-8">
+          <p className="mb-4 text-center text-sm text-ink-soft">
+            New homes go up here as our team lists them. Tell us what you are after and we will call you first.
+          </p>
+          <AlertSignup criteria="Any home that matches what I tell you on the call" />
+        </section>
+      )}
 
-      <RecentlyViewedRail />
-
-      {/* ── Cities ─────────────────────────────────────────────────────── */}
-      {cities.length > 0 && (
-        <section className="border-y border-rule py-14">
+      {localities.length > 0 && (
+        <section className="border-y border-line bg-paper-dim py-16">
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
-            <div className="flex flex-wrap items-baseline justify-between gap-4">
-              <h2 className="font-display text-2xl text-ink">Where we work</h2>
-              <Link href="/cities" className="font-data text-xs uppercase tracking-[0.12em] text-ink-2 hover:text-ink">
-                All cities →
-              </Link>
-            </div>
-            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
-              {cities.map((c) => (
+            <h2 className="font-display text-2xl text-ink sm:text-3xl">Where we have homes</h2>
+            <div className="mt-6 flex flex-wrap gap-3">
+              {localities.map((l) => (
                 <Link
-                  key={c.city}
-                  href={`/cities/${slugify(c.city)}`}
-                  className="font-data group text-sm text-ink-2 hover:text-ink"
+                  key={l.value}
+                  href={`/properties?locality=${encodeURIComponent(l.value)}`}
+                  className="rounded-full border border-line bg-paper px-5 py-2.5 text-sm text-ink-soft transition-colors hover:border-accent hover:text-ink"
                 >
-                  {c.city}
-                  <span className="ml-1.5 text-ink-3 group-hover:text-open">{c.project_count}</span>
+                  {l.label} <span className="text-ink-faint">({l.count})</span>
                 </Link>
               ))}
             </div>
@@ -214,70 +117,53 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ── How this works ─────────────────────────────────────────────── */}
-      <section id="process" className="mx-auto max-w-5xl px-5 py-20 sm:px-8">
-        <span className="label">How buying with us goes</span>
-        <h2 className="font-display mt-2 max-w-2xl text-3xl text-ink sm:text-4xl">
-          Nobody will ring you eleven times
-        </h2>
+      <RecentlyViewedRail />
 
-        <div className="mt-12 grid gap-10 sm:grid-cols-2">
-          <div>
-            <h3 className="font-display text-lg text-ink">You tell us the floor you want</h3>
-            <p className="mt-2 text-ink-2">
-              Budget, configuration, which sector, and whether you mind stairs. Two minutes on the form
-              or one call, whichever suits.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-display text-lg text-ink">We send four, not forty</h3>
-            <p className="mt-2 text-ink-2">
-              A shortlist we would show our own family, with the RERA number and title checked before
-              it reaches you. If nothing fits, we say so.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-display text-lg text-ink">We walk them with you</h3>
-            <p className="mt-2 text-ink-2">
-              At your pace, with honest commentary on construction quality, water, parking and what the
-              floor will fetch on resale.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-display text-lg text-ink">We stand beside you to registry</h3>
-            <p className="mt-2 text-ink-2">
-              Negotiation, the bank, the paperwork and the day itself. Then a desk you can come back to
-              for resale, rental or a referral.
-            </p>
+      <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
+        <span className="text-xs font-semibold uppercase tracking-[0.15em] text-accent">What we do</span>
+        <h2 className="mt-2 font-display text-3xl text-ink sm:text-4xl">Buy, sell, or just ask</h2>
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {SERVICES.map((s) => (
+            <Link key={s.title} href={s.href} className="group flex flex-col rounded-2xl border border-line bg-paper p-6 transition-shadow hover:shadow-[0_20px_50px_-25px_rgba(25,21,16,0.3)]">
+              <s.icon size={22} className="text-accent" />
+              <h3 className="mt-4 font-display text-xl text-ink">{s.title}</h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-soft">{s.body}</p>
+              <span className="mt-5 flex items-center gap-1 text-sm font-medium text-ink group-hover:text-accent">
+                {s.cta} <ArrowRight size={14} />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section id="process" className="border-t border-line bg-paper-dim py-20">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <span className="text-xs font-semibold uppercase tracking-[0.15em] text-accent">How it works</span>
+          <h2 className="mt-2 font-display text-3xl text-ink sm:text-4xl">From first call to keys in hand</h2>
+          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {PROCESS.map((step, i) => (
+              <div key={step.title}>
+                <div className="flex items-center gap-3">
+                  <span className="font-display text-2xl text-accent/60">0{i + 1}</span>
+                  <step.icon size={18} className="text-ink-faint" />
+                </div>
+                <h3 className="mt-3 font-display text-lg text-ink">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">{step.body}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── FAQ ────────────────────────────────────────────────────────── */}
-      <section id="faq" className="border-t border-rule bg-chalk-2 py-20">
-        <div className="mx-auto max-w-3xl px-5 sm:px-8">
-          <span className="label">Questions we get</span>
-          <h2 className="font-display mt-2 text-3xl text-ink sm:text-4xl">Before you ask</h2>
-          <div className="mt-10">
-            <FaqAccordion items={FAQS} />
-            <JsonLd data={faqJsonLd(FAQS)} />
-          </div>
-        </div>
+      <section id="faq" className="mx-auto max-w-3xl px-5 py-20 sm:px-8">
+        <h2 className="text-center font-display text-3xl text-ink sm:text-4xl">Questions people ask</h2>
+        <div className="mt-10"><FaqAccordion items={FAQS} /></div>
+        <JsonLd data={faqJsonLd(FAQS)} />
       </section>
 
-      {/* ── Enquiry ────────────────────────────────────────────────────── */}
-      <section id="enquire" className="border-t border-rule py-20">
+      <section id="enquire" className="border-t border-line bg-paper-dim py-20">
         <div className="mx-auto max-w-2xl px-5 sm:px-8">
-          <span className="label">Tell us what you want</span>
-          <h2 className="font-display mt-2 text-3xl text-ink sm:text-4xl">
-            Describe the floor and we will find it
-          </h2>
-          <p className="mt-3 text-ink-2">
-            If it is not on this page today, it is probably coming. We will call you when it does.
-          </p>
-          <div className="mt-8">
-            <EnquiryForm title="" subtitle="" />
-          </div>
+          <EnquiryForm />
         </div>
       </section>
     </>

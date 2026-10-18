@@ -1,28 +1,13 @@
 import { NextResponse } from "next/server";
-import { getProject, getProperty } from "@/lib/crm-client";
+import { getListing } from "@/lib/crm-client";
 
-// The compare page is client-driven (it reads the zustand-persisted compare
-// list from localStorage), so it can't call crm-client.ts directly — that
-// module is marked server-only. This tiny proxy is the bridge: still no CRM
-// origin or credentials ever reach the browser, just the resolved records.
+// The compare and saved pages are client-driven (they read this browser's own
+// lists), so they cannot call the server-only crm-client. This route is the
+// bridge: the CRM's address never reaches the browser, only the listings.
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const kind = url.searchParams.get("kind");
-  const ids = (url.searchParams.get("ids") ?? "").split(",").filter(Boolean).slice(0, 4);
-
-  if (ids.length === 0 || (kind !== "project" && kind !== "property")) {
-    return NextResponse.json({ items: [] });
-  }
-
-  const items = await Promise.all(
-    ids.map(async (id) => {
-      try {
-        return kind === "project" ? (await getProject(id)).project : await getProperty(id);
-      } catch {
-        return null;
-      }
-    }),
-  );
-
-  return NextResponse.json({ items: items.filter(Boolean) });
+  const ids = (url.searchParams.get("ids") ?? "").split(",").filter((id) => /^[0-9a-f-]{36}$/i.test(id)).slice(0, 24);
+  const items = await Promise.all(ids.map((id) => getListing(id).catch(() => null)));
+  // A listing that sold or was taken down simply drops out, and the page says how many.
+  return NextResponse.json({ items: items.filter(Boolean), missing: items.filter((i) => !i).length });
 }

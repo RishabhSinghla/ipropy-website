@@ -1,0 +1,28 @@
+name: Something is broken
+description: A thing on property.ipropy.com does not do what it should
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, and what the site did instead. A screenshot is worth a paragraph.
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: The page or the URL, e.g. a property's page, or /properties with filters.
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: On what
+      options:
+        - A phone
+        - A computer
+        - Both
+    validations:
+      required: true

@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Claude Code's own session helpers (plain Node scripts, shared with the
+    // CRM repo) — tooling, not the site.
+    ".claude/**",
   ]),
 ]);
 

@@ -1,4 +1,5 @@
-import { listProjects } from "@/lib/crm-client";
+import { listBlogPosts, listListings } from "@/lib/crm-client";
+import { priceText } from "@/lib/listing";
 import { SITE_URL } from "@/lib/site-url";
 
 export const revalidate = 3600;
@@ -13,7 +14,10 @@ export const revalidate = 3600;
  * answer is the one it finds.
  */
 export async function GET(): Promise<Response> {
-  const { items: projects } = await listProjects({ limit: 30 });
+  const [{ items: posts }, { items: listings }] = await Promise.all([
+    listBlogPosts({ limit: 50 }),
+    listListings({ limit: 30, sort: "newest" }),
+  ]);
 
   const lines = [
     "# iPropy",
@@ -22,12 +26,19 @@ export async function GET(): Promise<Response> {
     "> Every listing is sourced from our own sales desk, so availability reflects what is actually",
     "> on the market today rather than a stale portal feed.",
     "",
-    "## Projects",
-    ...projects.map((p) => `- [${p.name}](${SITE_URL}/projects/${p.id})${p.locality ? `: ${p.locality}, ${p.city}` : ""}`),
+    "## Guides",
+    ...posts.map((p) => {
+      const note = p.key_takeaway ?? p.excerpt ?? "";
+      return `- [${p.title}](${SITE_URL}/blog/${p.slug})${note ? `: ${note}` : ""}`;
+    }),
+    "",
+    "## Newest listings",
+    ...listings.map((l) => `- [${l.title}](${SITE_URL}/properties/${l.id}): ${priceText(l)}`),
     "",
     "## Pages",
-    `- [All projects](${SITE_URL}/projects)`,
     `- [All properties](${SITE_URL}/properties)`,
+    `- [Sell your property](${SITE_URL}/sell)`,
+    `- [Insights](${SITE_URL}/blog)`,
   ];
 
   return new Response(lines.join("\n"), {

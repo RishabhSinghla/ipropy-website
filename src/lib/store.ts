@@ -3,10 +3,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type CompareKind = "project" | "property";
 export interface CompareRef {
   id: string;
-  kind: CompareKind;
   // Denormalised at add-time so the floating tray never has to re-fetch.
   name: string;
   subtitle?: string;
@@ -38,11 +36,6 @@ export const useSiteStore = create<SiteState>()(
       addToCompare: (ref) =>
         set((s) => {
           if (s.compare.some((c) => c.id === ref.id)) return s;
-          if (s.compare.length > 0 && s.compare[0].kind !== ref.kind) {
-            // Comparing across kinds (a project vs. a unit) isn't meaningful —
-            // starting a fresh comparison in the new kind reads better than an error.
-            return { compare: [ref] };
-          }
           if (s.compare.length >= MAX_COMPARE) return s;
           return { compare: [...s.compare, ref] };
         }),
@@ -60,7 +53,13 @@ export const useSiteStore = create<SiteState>()(
       isComparing: (id) => get().compare.some((c) => c.id === id),
       isShortlisted: (id) => get().shortlist.some((c) => c.id === id),
     }),
-    { name: "ipropy-site" },
+    {
+      name: "ipropy-site",
+      // Version 1 held projects and units from the old catalogue, whose ids
+      // no longer open anything. Starting empty beats a tray of dead links.
+      version: 2,
+      migrate: () => ({ compare: [], shortlist: [], recentlyViewed: [] }),
+    },
   ),
 );
 

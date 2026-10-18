@@ -43,3 +43,6 @@ next-env.d.ts
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
+
+# Personal Claude Code settings
+.claude/settings.local.json
