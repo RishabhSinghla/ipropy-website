@@ -6,6 +6,8 @@ import { slugify } from "@/lib/slug";
 import { formatIndianPrice } from "@/lib/format";
 import { SearchBar } from "@/components/SearchBar";
 import { FaqAccordion } from "@/components/FaqAccordion";
+import { JsonLd } from "@/components/JsonLd";
+import { faqJsonLd } from "@/lib/jsonld";
 import { EnquiryForm } from "@/components/EnquiryForm";
 import { RecentlyViewedRail } from "@/components/RecentlyViewedRail";
 import { FloorStack } from "@/components/FloorStack";
@@ -258,6 +260,7 @@ export default async function HomePage() {
           <h2 className="font-display mt-2 text-3xl text-ink sm:text-4xl">Before you ask</h2>
           <div className="mt-10">
             <FaqAccordion items={FAQS} />
+            <JsonLd data={faqJsonLd(FAQS)} />
           </div>
         </div>
       </section>
